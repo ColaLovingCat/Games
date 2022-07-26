@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link rel="stylesheet" href="./libs/font-awesome/css/font-awesome.min.css">
+
+    <link rel="stylesheet" href="./libs/styles/contents.css">
+    <link rel="stylesheet" href="./libs/styles/game.css">
+
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+    <div id="app">
+        <section class="settings" v-if="gameStatus.step=='setting'">
+            <!-- 创建界面 -->
+            <div class="setting-content ele-center">
+                <!-- 创建 -->
+                <div class="content-left">
+                    <div class="section section-create">
+                        <div class="section-header">
+                            <h4 class="title">创建房间</h4>
+                        </div>
+                        <div class="section-content">
+                            <!-- 配置 -->
+                            <div class="box box-create">
+                                <div class="box-header">
+                                    <h4 class="title">规则</h4>
+                                </div>
+                                <div class="box-content">
+                                    <!-- Setting -->
+                                    <div class="setting-item" v-for="set in gameInfos.ruleList" v-bind:key="set.key">
+                                        <div class="setting-title">{{set.title}}:</div>
+                                        <div class="setting-btns">
+                                            <button type="button" class="btn btn-option" v-for="config in set.configs"
+                                                v-bind:class="getStatus(set.key, config)"
+                                                v-on:click="setConfig(set.key,config.value)">
+                                                <span title="">{{config.text}}</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- 信息 -->
+                            <div class="box box-single" v-bind:class="serverInfos.type=='single'?'active':''"
+                                onclick="selectType('single')">
+                                <div class="box-header">
+                                    <h4 class="title">单机</h4>
+                                </div>
+                                <div class="box-content">
+                                    <div class="option-items" v-show="serverInfos.type=='single'">
+                                        <img src="./assets/imgs/settings/single-white.png" alt="">
+                                    </div>
+                                    <div class="option-icon" v-show="serverInfos.type!='single'">
+                                        <img src="./assets/imgs/settings/single.png" alt="">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="box box-multi" v-bind:class="serverInfos.type=='multi'?'active':''"
+                                onclick="selectType('multi')">
+                                <div class="box-header">
+                                    <h4 class="title">联机</h4>
+                                </div>
+                                <div class="box-content">
+                                    <div class="option-items" v-show="serverInfos.type=='multi'">
+                                        <div class="form-control">
+                                            <label>房间名: </label>
+                                            <input type="text" name="" v-model="createInfos.name">
+                                        </div>
+                                        <div class="form-control">
+                                            <label>密码: </label>
+                                            <input type="text" name="" v-model="createInfos.password">
+                                        </div>
+                                        <div class="form-control">
+                                            <label>玩家名: </label>
+                                            <input type="text" name="" v-model="createInfos.playerName">
+                                        </div>
+                                    </div>
+                                    <div class="option-icon" v-show="serverInfos.type!='multi'">
+                                        <img src="./assets/imgs/settings/multi.png" alt="">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="section-footer">
+                            <button type="button" class="btn btn-start" onclick="createGame()">创建</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- 加入 -->
+                <div class="content-right">
+                    <div class="section section-add">
+                        <div class="section-header">
+                            <h4 class="title">加入房间</h4>
+                        </div>
+                        <div class="section-content">
+                            <!-- 列表 -->
+                            <div class="box box-list">
+                                <div class="box-header">
+                                    <h4 class="title">房间</h4>
+                                </div>
+                                <div class="box-content">
+                                    <div class="servers">
+                                        <div class="server-item" v-for="item in serverList"
+                                            v-on:click="triggerSelectRoom(item)">
+                                            <div>{{item.name}}</div>
+                                            <div>{{item.hostName}}</div>
+                                            <div>{{item.currentCount}} / {{item.limit}}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- 信息 -->
+                            <div class="box box-add">
+                                <div class="box-header">
+                                    <h4 class="title">信息</h4>
+                                </div>
+                                <div class="box-content">
+                                    <div class="option-items">
+                                        <div class="form-control">
+                                            <label>房间名: </label>
+                                            <input type="text" name="" v-model="addInfos.name">
+                                        </div>
+                                        <div class="form-control">
+                                            <label>密码: </label>
+                                            <input type="text" name="" v-model="addInfos.password">
+                                        </div>
+                                        <div class="form-control">
+                                            <label>玩家名: </label>
+                                            <input type="text" name="" v-model="addInfos.playerName">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="section-footer">
+                            <button type="button" class="btn btn-start" onclick="addGame()">加入</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <!-- 等待界面 -->
+            <div class="setting-room" v-show="gameStatus.showRoom!=''">
+                <div class="room-content ele-center" v-if="gameStatus.showRoom=='host'">
+                    <div class="box-header">
+                        <h4>{{serverInfos.name}} 正在等待玩家...</h4>
+                    </div>
+                    <div class="players room-players">
+                        <div class="box box-playerItem" v-for="player in players">
+                            <div class="item-img">
+                                <img v-bind:src="'./assets/players/'+player.img" onerror="console.log('Error','room')">
+                            </div>
+                            <div class="item-name">{{player.showName}}</div>
+                        </div>
+                    </div>
+                    <div class="content-footer">
+                        <button type="button" v-if="keyCode===serverInfos.hostCode" class="btn btn-start"
+                            onclick="goGame()">开始</button>
+                    </div>
+                </div>
+                <div class="room-content ele-center" v-if="gameStatus.showRoom=='wait'">
+                    <i class="fa fa-spinner fa-spin"></i>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="./libs/vue/vue.min.js"></script>
+
+    <script src="./libs/signalr/signalr.min.js"></script>
+    <script src="./libs/signalr/chat.js"></script>
+
+    <script src="./libs/extend.js"></script>
+    <script src="./libs/games/game.js"></script>
+
+    <script src="./index.js"></script>
+
+    <!-- onload -->
+    <script>
+        window.onload = function () {
+            app.keyCode = ExString.uuid()
+            startCon()
+        }
+    </script>
+
+    <!-- Message -->
+    <script type="text/javascript">
+        // 建立之后触发
+        function afterStart() {
+            getlistServers()
+        }
+        // 处理信息
+        function getMessage(mes) {
+            if (mes.from != app.keyCode) { // 不是自己
+                switch (mes.category) {
+                    case "board": { // 全局广播
+                        switch (mes.remarks) {
+                            // 收集所有房间列表
+                            case "Rom_GetList": {
+                                if (app.serverInfos.isActive) {
+                                    let message = {
+                                        category: "single", // board|single
+                                        from: app.keyCode,
+                                        to: mes.from,
+                                        contents: JSON.stringify({
+                                            server: app.serverInfos,
+                                            players: app.players
+                                        }),
+                                        remarks: "Rom_Response",
+                                    }
+                                    sendMessage(message)
+                                }
+                                break
+                            }
+                        }
+                        break
+                    }
+                    case "single": {
+                        if (mes.to == app.keyCode) { // 给我的信息
+                            switch (mes.remarks) {
+                                // 返回了房间信息
+                                case "Rom_Response": {
+                                    let { server, players } = JSON.parse(mes.contents)
+                                    let host = players.find(item => item.code == server.hostCode)
+                                    app.serverList.push({
+                                        code: server.code,
+                                        name: server.name,
+                                        hostName: host.showName,
+                                        isLock: server.password != "",
+                                        limit: server.limit,
+                                        currentCount: players.length,
+                                    })
+                                    break
+                                }
+                                // 别人申请加入房间
+                                case "Involve_Request": {
+                                    if (app.players.length < app.serverInfos.limit) {
+                                        let playerName = mes.contents
+                                        let playerInfos = createPlayer(app.players.length, playerName, app.gameInfos.type, mes.from, false)
+                                        app.players.push(playerInfos)
+                                        //
+                                        let message = {
+                                            category: "single",
+                                            from: app.keyCode,
+                                            to: mes.from,
+                                            contents: JSON.stringify({
+                                                isSuccess: true,
+                                                server: app.serverInfos,
+                                                players: app.players
+                                            }),
+                                            remarks: "Involve_Response",
+                                        }
+                                        sendMessage(message)
+                                        //
+                                        app.players.map(player => {
+                                            if (player.keyCode != app.keyCode && player.keyCode != mes.from) {
+                                                let message = {
+                                                    category: "single",
+                                                    from: app.keyCode,
+                                                    to: mes.from,
+                                                    contents: JSON.stringify({
+                                                        isSuccess: true,
+                                                        players: app.players
+                                                    }),
+                                                    remarks: "Player_Refresh",
+                                                }
+                                                sendMessage(message)
+                                            }
+                                        })
+                                    }
+                                    else {
+                                        let message = {
+                                            category: "single",
+                                            from: app.keyCode,
+                                            to: mes.from,
+                                            contents: JSON.stringify({
+                                                isSuccess: false,
+                                                message: "房间已满",
+                                            }),
+                                            remarks: "Involve_Response",
+                                        }
+                                        sendMessage(message)
+                                    }
+                                    break
+                                }
+                                // 申请加入房间的回复
+                                case "Involve_Response": {
+                                    let { isSuccess, server, players } = JSON.parse(mes.contents)
+                                    if (isSuccess) {
+                                        showRoom('host')
+                                        //
+                                        app.serverInfos = server
+                                        app.players = players
+                                    }
+                                    break
+                                }
+                                // 房主刷新玩家信息
+                                case "Player_Refresh": {
+                                    let { isSuccess, players } = JSON.parse(mes.contents)
+                                    if (isSuccess) {
+                                    }
+                                    break
+                                }
+                                // 房主要求玩家进入游戏
+                                case "Server_StartGame": {
+                                    if (app.gameInfos.type == mes.contents) {
+                                        window.open(app.gameInfos.type + "/index.html?keyCode=" + app.keyCode + "&hostCode=" + app.serverInfos.hostCode, "_self")
+                                    }
+                                    break
+                                }
+                            }
+                        }
+
+                        break
+                    }
+                }
+            }
+            else {
+                switch (mes.remarks) {
+                    // 在进入游戏界面后请求服务器信息
+                    case "Server_GetInfo": {
+                        if (app.gameInfos.type == mes.contents) {
+                            let message = {
+                                category: "single", // board|single
+                                from: app.keyCode,
+                                to: app.keyCode,
+                                contents: JSON.stringify({
+                                    server: app.serverInfos,
+                                    game: app.gameInfos,
+                                    players: app.players,
+                                }),
+                                remarks: "Server_ResponseInfo",
+                            }
+                            sendMessage(message)
+                        }
+                        break
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Vue -->
+    <script>
+        var app = new Vue({
+            el: "#app",
+            data: {
+                keyCode: "",
+                // 局域网信息
+                serverInfos: {
+                    type: "single", // single|multi
+                    //
+                    isActive: false, // 状态
+                    code: "", // 通讯代码
+                    name: "", // 名称
+                    password: "", // 密码
+                    limit: 4, // 人数限制
+                    hostCode: "", // 房主
+                },
+                //
+                gameStatus: {
+                    step: "setting",
+                    showRoom: "", // host|wait
+                },
+                //
+                players: [],
+                // 页面信息
+                currentGameType: "wuzi",
+                games: [],
+                gameInfos: {},
+                //
+                createInfos: {
+                    name: "",
+                    password: "",
+                    playerName: "",
+                },
+                serverList: [], // 房间列表
+                addInfos: {// 加入信息
+                    code: "",
+                    name: "",
+                    password: "",
+                    playerName: "",
+                },
+            },
+            computed: {
+            },
+            methods: {
+                getStatus: function (key, config) {
+                    return this.gameInfos.rules[key] === config.value ? 'active' : ''
+                },
+                setConfig: function (key, value) {
+                    console.log("[Game]: ", "***** 切换规则 *****")
+                    this.gameInfos.rules[key] = value
+                },
+                //
+                triggerSelectRoom: function (item) {
+                    this.addInfos.code = item.code
+                    this.addInfos.name = item.name
+                },
+            },
+            created: function () { // data和methods已挂载
+                this.games = gameList
+                this.gameInfos = this.games[0]
+            },
+            mounted: function () { // Dom已挂载
+            },
+        })
+    </script>
+</body>
+
+</html>

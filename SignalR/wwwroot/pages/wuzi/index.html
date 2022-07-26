@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link rel="stylesheet" href="../../libs/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../../libs/pubs/contents.css">
+
+    <link rel="stylesheet" href="../../games/game.css">
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+    <div class="section-game">
+        <div id="app">
+            <div class="players">
+                <div class="player-item" v-bind:class="hostPlayer.code==activeCode?'':'disabled'">
+                    <div class="player-infos">
+                        <div class="item-img">
+                            <img v-bind:src="'../../assets/players/'+hostPlayer.img"
+                                onerror="console.log('IMGError','others')">
+                        </div>
+                        <div class="item-name">
+                            <i class="fa fa-circle" v-bind:class="hostPlayer.isOnline?'active':''"></i>
+                            {{hostPlayer.showName}}
+                        </div>
+                    </div>
+                </div>
+                <div class="player-item" v-for="player in otherPlayers"
+                    v-bind:class="player.code==activeCode?'':'disabled'">
+                    <div class="player-infos">
+                        <div class="item-img">
+                            <img v-bind:src="'../../assets/players/'+player.img"
+                                onerror="console.log('IMGError','others')">
+                        </div>
+                        <div class="item-name">
+                            <i class="fa fa-circle" v-bind:class="hostPlayer.isOnline?'active':''"></i>
+                            {{player.showName}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="canvas">
+                <div class="item-hightlight" v-bind:style="getLoc()"> </div>
+            </div>
+        </div>
+        <canvas id="canvas" height="750" width="750"></canvas>
+    </div>
+    <div class="section-end">
+    </div>
+    <div id="notify"></div>
+
+    <script src="../../libs/vue/vue.min.js"></script>
+
+    <script src="../../libs/signalr/signalr.min.js"></script>
+    <script src="../../libs/signalr/chat.js"></script>
+    <script src="../../libs/pubs/extend.js"></script>
+    <script src="../../libs/notify/notify.js"></script>
+
+    <script src="../../games/game.js"></script>
+    <script src="../../games/com.js"></script>
+
+    <script src="./index.js"></script>
+
+    <script>
+        window.onload = function () {
+            // 获取用户代码
+            app.keyCode = ExWeb.query("keyCode")
+            //
+            startCon()
+        }
+        window.onbeforeunload = function () {
+            offlinePlayer()
+        }
+        window.onunload = function () {
+            alert("2222")
+        }
+    </script>
+
+    <script>
+        // 建立之后触发
+        function afterStart() {
+            // 获取服务信息
+            getinfoServer()
+            // 初始化棋盘
+            initialMap()
+        }
+        // 处理信息
+        function getMessage(mes) {
+            handleMessage(mes)
+            //
+            handleWuzi(mes)
+        }
+    </script>
+
+    <script>
+        var app = new Vue({
+            el: "#app",
+            data: {
+                // 页面通用信息
+                // 关键代码
+                keyCode: "", // 个人识别码
+                // 局域网信息
+                serverInfos: {
+                    type: "single", // single|multi
+                    //
+                    isActive: false, // 状态
+                    code: "", // 通讯代码
+                    name: "", // 名称
+                    password: "", // 密码
+                    limit: 4, // 人数限制
+                },
+                // 游戏规则信息
+                gameInfos: {
+                    type: "wuzi",
+                    category: "chess",
+                    showName: "五子棋",
+                    playerCount: 2,
+                    rules: {
+                        size: 25,
+                        first: 0,
+                    },
+                },
+                // 游戏状态
+                gameStatus: {
+                    step: "game",
+                },
+                // 玩家信息
+                activeCode: "", // 当前操作玩家
+                players: [],
+                // 页面所需信息
+                lastLoc: {
+                    x: -1,
+                    y: -1,
+                }
+            },
+            computed: {
+                hostPlayer: function () {  // 当前玩家信息
+                    return groupPlayers(this.players, this.keyCode).playerInfo
+                },
+                otherPlayers: function () { // 其余玩家信息
+                    return groupPlayers(this.players, this.keyCode).otherPlayers
+                },
+            },
+            methods: {
+                getLoc: function () {
+                    console.log("Testing: ", 0)
+                    return {
+                        display: this.lastLoc.x > -1 ? "block" : "none",
+                        left: this.lastLoc.x * 30 + "px",
+                        top: this.lastLoc.y * 30 + "px",
+                    }
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,7 @@
+D:\002_Program\Games\SignalR\obj\Release\net6.0\win-x64\PubTmp\Out\SignalR.exe
+D:\002_Program\Games\SignalR\obj\Release\net6.0\win-x64\PubTmp\Out\appsettings.Development.json
+D:\002_Program\Games\SignalR\obj\Release\net6.0\win-x64\PubTmp\Out\appsettings.json
+D:\002_Program\Games\SignalR\obj\Release\net6.0\win-x64\PubTmp\Out\SignalR.dll
+D:\002_Program\Games\SignalR\obj\Release\net6.0\win-x64\PubTmp\Out\SignalR.deps.json
+D:\002_Program\Games\SignalR\obj\Release\net6.0\win-x64\PubTmp\Out\SignalR.runtimeconfig.json
+D:\002_Program\Games\SignalR\obj\Release\net6.0\win-x64\PubTmp\Out\SignalR.pdb

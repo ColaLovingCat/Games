@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link rel="stylesheet" href="../libs/font-awesome/css/font-awesome.min.css">
+
+    <link rel="stylesheet" href="../libs/styles/contents.css">
+    <link rel="stylesheet" href="../libs/styles/game.css">
+
+    <link rel="stylesheet" href="./style.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <div id="app">
+            <div class="players">
+                <div class="player-item" v-bind:class="hostPlayer.code==activeCode?'':'disabled'">
+                    <div class="player-infos">
+                        <div class="item-img">
+                            <img v-bind:src="'../assets/players/'+hostPlayer.img"
+                                 onerror="console.log('IMGError','others')">
+                        </div>
+                        <div class="item-name">
+                            <i class="fa fa-circle"
+                               v-bind:class="hostPlayer.isOnline?'active':''"></i> {{hostPlayer.showName}}
+                        </div>
+                    </div>
+                </div>
+                <div class="player-item" v-for="player in otherPlayers"
+                     v-bind:class="player.code==activeCode?'':'disabled'">
+                    <div class="player-infos">
+                        <div class="item-img">
+                            <img v-bind:src="'../assets/players/'+player.img" onerror="console.log('IMGError','others')">
+                        </div>
+                        <div class="item-name">
+                            <i class="fa fa-circle"
+                               v-bind:class="hostPlayer.isOnline?'active':''"></i> {{player.showName}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <canvas id="canvas" height="750" width="750"></canvas>
+    </div>
+
+    <script src="../libs/vue/vue.min.js"></script>
+
+    <script src="../libs/signalr/signalr.min.js"></script>
+    <script src="../libs/signalr/chat.js"></script>
+
+    <script src="../libs/extend.js"></script>
+    <script src="../libs/games/game.js"></script>
+
+    <script src="./index.js"></script>
+
+    <script>
+        window.onload = function () {
+            app.keyCode = ExWeb.query("keyCode")
+            startCon()
+        }
+    </script>
+
+    <script>
+        // 建立之后触发
+        function afterStart() {
+            initialMap()
+            //
+            let message = {
+                category: "single",
+                from: app.keyCode,
+                to: app.keyCode,
+                contents: app.gameInfos.type,
+                remarks: "Server_GetInfo",
+            }
+            if (ExWeb.query("hostCode")) {
+                message.to = ExWeb.query("hostCode")
+            }
+            sendMessage(message)
+        }
+        // 处理信息
+        function getMessage(mes) {
+            if (mes.from != app.keyCode) { // 不是自己
+                switch (mes.category) {
+                    case "board": { // 全局广播
+                        switch (mes.remarks) {
+                            // 有人请求房间列表
+                            case "Rom_GetList": {
+
+                                break
+                            }
+                        }
+                        break
+                    }
+                    case "single": {
+                        if (mes.to == app.keyCode) { // 给我的信息
+                            switch (mes.remarks) {
+                                // 玩家请求房间信息
+                                case "Server_GetInfo": {
+                                    let message = {
+                                        category: "single",
+                                        from: app.keyCode,
+                                        to: mes.from,
+                                        contents: JSON.stringify({
+                                            server: app.serverInfos,
+                                            game: app.gameInfos,
+                                            players: app.players,
+                                        }),
+                                        remarks: "Server_ResponseInfo",
+                                    }
+                                    sendMessage(message)
+                                    break
+                                }
+                                // 房主返回房间信息
+                                case "Server_ResponseInfo": {
+                                    let { server, game, players } = JSON.parse(mes.contents)
+                                    if (app.gameInfos.type == game.type) {
+                                        app.serverInfos = server
+                                        app.gameInfos = game
+                                        app.players = players
+                                        //
+                                        changeOnLine(app.keyCode)
+                                        app.activeCode = app.serverInfos.hostCode
+                                        // 通知房主玩家准备完毕
+                                        let message = {
+                                            category: "single",
+                                            from: app.keyCode,
+                                            to: mes.from,
+                                            contents: app.gameInfos.type,
+                                            remarks: "Game_Ready",
+                                        }
+                                        sendMessage(message)
+                                    }
+                                    break
+                                }
+                                // 玩家准备完毕
+                                case "Game_Ready": {
+                                    changeOnLine(mes.from)
+                                    //
+                                    let mark = true
+                                    app.players.map(player => {
+                                        if (!player.isOnline) { mark = false }
+                                    })
+                                    if (mark) {
+                                        app.activeCode = app.serverInfos.hostCode
+                                    }
+                                    break
+                                }
+                                // 玩家准备完毕
+                                case "Chess_Draw": {
+                                    app.activeCode = app.keyCode
+                                    //
+                                    let { loc } = JSON.parse(mes.contents)
+                                    console.log("Testing: ", loc)
+                                    drawChess(loc.i, loc.j, loc.color)
+                                    break
+                                }
+                            }
+                        }
+                        break
+                    }
+                }
+            }
+            else {
+                switch (mes.remarks) {
+                    // 初始化服务器信息
+                    case "Server_ResponseInfo": {
+                        let { server, game, players } = JSON.parse(mes.contents)
+                        if (app.gameInfos.type == game.type) {
+                            app.serverInfos = server
+                            app.gameInfos = game
+                            app.players = players
+                            //
+                            changeOnLine(app.keyCode)
+                            app.activeCode = app.keyCode
+                            // 通知玩家进入
+                            for (let loop = 0; loop < app.players.length; loop++) {
+                                let player = app.players[loop]
+                                let message = {
+                                    category: "single",
+                                    from: app.keyCode,
+                                    to: player.code,
+                                    contents: app.gameInfos.type,
+                                    remarks: "Server_StartGame",
+                                }
+                                sendMessage(message)
+                            }
+                        }
+                        break
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script>
+        var app = new Vue({
+            el: "#app",
+            data: {
+                keyCode: "",
+                // 局域网信息
+                serverInfos: {
+                    type: "single", // single|multi
+                    //
+                    isActive: false, // 状态
+                    code: "", // 通讯代码
+                    name: "", // 名称
+                    password: "", // 密码
+                    limit: 4, // 人数限制
+                    hostCode: "", // 房主
+                },
+                //
+                gameInfos: {
+                    type: "wuzi",
+                    playerCount: 2,
+                    //
+                    rules: {
+                        size: 25,
+                        first: 0,
+                    },
+                },
+                //
+                gameStatus: {
+                    step: "game",
+                },
+                // 玩家信息
+                activeCode: "", // 当前操作玩家
+                players: [],
+            },
+            computed: {
+                hostPlayer: function () {  // 当前玩家信息
+                    let playerInfo = this.players.find(item => item.code == this.keyCode)
+                    return playerInfo ? playerInfo : {}
+                },
+                otherPlayers: function () { // 其余玩家信息
+                    let before = [], after = []
+                    let mark = true
+                    this.players.map(player => {
+                        if (player.code != this.keyCode) {
+                            if (mark) {
+                                after.push(player)
+                            }
+                            else {
+                                before.push(player)
+                            }
+                        }
+                        else {
+                            mark = false
+                        }
+                    })
+                    let result = before.concat(after)
+                    return result
+                },
+            },
+        })
+    </script>
+</body>
+
+</html>

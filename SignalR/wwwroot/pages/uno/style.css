@@ -1,0 +1,206 @@
+
+.section-games {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    background: gray;
+}
+
+.map-games {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.game-players {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+}
+
+.players {
+    position: absolute;
+}
+
+.players.player-0 {
+    bottom: 0;
+    left: 50%;
+    transform: translate(-50%, 0);
+    text-align: center;
+}
+
+.players.player-1 {
+    right: 0;
+    top: -125px;
+    transform: rotate( -90deg);
+    transform-origin: right bottom;
+}
+
+.players.player-2 {
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, 0) rotate( 180deg);
+}
+
+.players.player-3 {
+    left: 0;
+    top: -125px;
+    transform: rotate( 90deg);
+    transform-origin: left bottom;
+}
+
+.players-btns {
+    height: 40px;
+}
+
+.btn.btn-play {
+    padding: 5px 10px;
+    font-size: 16px;
+}
+
+.color-btns .btn {
+    color: white;
+}
+
+.players-pokers {
+    display: grid;
+    grid-template-columns: 1fr 3rem;
+    min-width: 360px;
+}
+
+.list-pokers {
+    display: flex;
+    padding: 1.2rem 5px 5px 4rem;
+}
+
+.poker {
+    width: 5rem;
+    height: 7.7rem;
+    margin-left: -3.8rem;
+    background-size: 100% 100%;
+}
+
+.player-0 .poker:hover {
+    transform: scale(1.2, 1.2);
+    margin-right: 4rem;
+}
+
+.poker.poker-selected {
+    margin-top: -1rem;
+}
+
+.player-1 .list-pokers .poker, .player-2 .list-pokers .poker, .player-3 .list-pokers .poker {
+    margin-left: -4.3rem
+}
+
+.pokers-player {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding-top: 40px;
+    text-align: center;
+}
+
+.pokers-player img {
+    width: 3rem;
+    border-radius: 50%;
+}
+
+.pokers-player span {
+    font-size: 18px;
+}
+
+.pokers-num span {
+    font-size: 1.5rem;
+}
+
+.pokers-txt {
+    font-size: 1.5rem;
+}
+
+.game-area {
+    position: absolute;
+}
+
+.game-btns {
+    top: 0;
+    right: 0;
+    padding: 10px;
+    z-index: 6;
+}
+
+.game-infos {
+    padding: 20px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 6;
+}
+
+.game-infos .list-pokers {
+    padding-top: 0;
+    margin-left: 1rem;
+}
+
+.game-infos .list-pokers .poker {
+    margin-left: calc(-5rem + 6px);
+}
+
+.list-pokers.list-lots .poker {
+    margin-left: -5rem;
+}
+
+.game-infos.infos-red, .btn-red {
+    background: rgba(222, 35, 26, .7);
+}
+
+.game-infos.infos-yellow, .btn-yellow {
+    background: rgba(249, 238, 4, .7);
+}
+
+.game-infos.infos-green, .btn-green {
+    background: rgba(0, 149, 65, .7);
+}
+
+.game-infos.infos-blue, .btn-blue {
+    background: rgba(0, 148, 222, .7);
+}
+
+.infos-pokers {
+    position: relative;
+    display: flex;
+}
+
+.infos-pokers .poker.poker-item1 {
+    margin-left: -4rem;
+}
+
+.infos-pokers .poker.poker-item2 {
+    margin-left: -3.5rem;
+}
+
+.infos-pokers .poker.poker-item3 {
+    margin-left: -3rem;
+}
+
+.game-pokers {
+    left: 0;
+    bottom: 0;
+}
+
+.game-pokers .list-pokers {
+    padding-left: 5rem;
+}
+
+.game-pokers .list-pokers .poker {
+    margin-left: -5rem;
+}

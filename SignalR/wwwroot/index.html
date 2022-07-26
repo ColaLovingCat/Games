@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link rel="stylesheet" href="./libs/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="./libs/pubs/contents.css">
+
+    <link rel="stylesheet" href="./games/game.css">
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+    <div id="app">
+        <section class="settings" v-if="gameStatus.step=='setting'||gameStatus.step=='waiting'">
+            <!-- 创建界面 -->
+            <div class="setting-content ele-center">
+                <!-- 创建 -->
+                <div class="content-left">
+                    <div class="section section-create">
+                        <div class="section-header">
+                            <h4 class="title">创建房间</h4>
+                        </div>
+                        <div class="section-content">
+                            <!-- 配置 -->
+                            <div class="box box-create">
+                                <div class="box-header">
+                                    <h4 class="title">{{gameInfos.showName}}</h4>
+                                    <div class="box-tools">
+                                        <!-- 展示游戏库 -->
+                                        <div class="btn btn-next" onclick="showModal('games')">
+                                            <i class="fa fa-cubes"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="box-content">
+                                    <!-- 游戏规则配置 -->
+                                    <div class="setting-item" v-for="set in gameInfos.ruleList" v-bind:key="set.key">
+                                        <div class="setting-title">{{set.title}}:</div>
+                                        <div class="setting-btns">
+                                            <button type="button" class="btn btn-option" v-for="config in set.configs"
+                                                v-bind:class="getStatus(set.key, config)"
+                                                v-on:click="setConfig(set.key,config.value)">
+                                                <span title="">{{config.text}}</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- 单人 -->
+                            <div class="box box-single" v-bind:class="serverInfos.type=='single'?'active':''"
+                                onclick="changeType('single')">
+                                <div class="box-header">
+                                    <h4 class="title">单机</h4>
+                                </div>
+                                <div class="box-content">
+                                    <div class="option-items" v-show="serverInfos.type=='single'">
+                                        <img src="./assets/imgs/settings/single-white.png" alt="">
+                                    </div>
+                                    <div class="option-icon" v-show="serverInfos.type!='single'">
+                                        <img src="./assets/imgs/settings/single.png" alt="">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- 多人 -->
+                            <div class="box box-multi" v-bind:class="serverInfos.type=='multi'?'active':''"
+                                onclick="changeType('multi')">
+                                <div class="box-header">
+                                    <h4 class="title">联机</h4>
+                                </div>
+                                <div class="box-content">
+                                    <div class="option-items" v-show="serverInfos.type=='multi'">
+                                        <div class="form-control">
+                                            <label>房间名: </label>
+                                            <input type="text" name="" v-model="createInfos.name">
+                                        </div>
+                                        <div class="form-control">
+                                            <label>密码: </label>
+                                            <input type="text" name="" v-model="createInfos.password">
+                                        </div>
+                                        <div class="form-control">
+                                            <label>玩家名: </label>
+                                            <input type="text" name="" v-model="createInfos.playerName">
+                                        </div>
+                                    </div>
+                                    <div class="option-icon" v-show="serverInfos.type!='multi'">
+                                        <img src="./assets/imgs/settings/multi.png" alt="">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="section-footer">
+                            <button type="button" class="btn btn-start" onclick="createGame()">创建</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- 加入 -->
+                <div class="content-right">
+                    <div class="section section-add">
+                        <div class="section-header">
+                            <h4 class="title">加入房间</h4>
+                        </div>
+                        <div class="section-content">
+                            <!-- 列表 -->
+                            <div class="box box-list">
+                                <div class="box-header">
+                                    <h4 class="title">房间列表</h4>
+                                    <div class="box-tools">
+                                        <div class="btn btn-refresh" onclick="refreshRoom()">
+                                            <i class="fa fa-refresh"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="box-content">
+                                    <div class="servers">
+                                        <div class="server-item" v-for="item in serverList"
+                                            v-on:click="triggerSelectRoom(item)">
+                                            <div><i class="fa fa-lock" v-if="item.isLock"></i> {{item.name}}</div>
+                                            <div>{{item.hostName}}</div>
+                                            <div>{{item.currentCount}} / {{item.limit}}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- 信息 -->
+                            <div class="box box-add">
+                                <div class="box-header">
+                                    <h4 class="title">信息</h4>
+                                </div>
+                                <div class="box-content">
+                                    <div class="option-items">
+                                        <div class="form-control">
+                                            <label>房间名: </label>
+                                            <input type="text" name="" v-model="addInfos.name">
+                                        </div>
+                                        <div class="form-control">
+                                            <label>密码: </label>
+                                            <input type="text" name="" v-model="addInfos.password">
+                                        </div>
+                                        <div class="form-control">
+                                            <label>玩家名: </label>
+                                            <input type="text" name="" v-model="addInfos.playerName">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="section-footer">
+                            <button type="button" class="btn btn-start" onclick="addGame()">加入</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <!-- 等待界面 -->
+            <div class="setting-room" v-show="gameStatus.step=='waiting'">
+                <div class="room-content ele-center" v-if="roomStatus=='waiting'">
+                    <div class="box-header">
+                        <h4>{{serverInfos.name}} 正在等待玩家...</h4>
+                    </div>
+                    <div class="players room-players">
+                        <div class="box box-playerItem" v-for="player in players">
+                            <div class="item-img">
+                                <img v-bind:src="'./assets/players/'+player.img" onerror="console.log('Error','room')">
+                            </div>
+                            <div class="item-name">{{player.showName}}</div>
+                        </div>
+                    </div>
+                    <div class="content-footer">
+                        <button type="button" v-if="keyCode===serverInfos.code" class="btn btn-start"
+                            onclick="startGame()">
+                            开始
+                        </button>
+                    </div>
+                </div>
+                <div class="room-content ele-center" v-if="roomStatus=='search'">
+                    <i class="fa fa-spinner fa-spin"></i>
+                </div>
+            </div>
+        </section>
+        <section class="section-server settings" v-if="gameStatus.step=='server'">
+            <div class="section-header">
+                <h4>{{serverRoom.status}}</h4>
+            </div>
+            <div class="section-contents">
+                <div class="box box-infos">
+                    <div class="box-content">
+                        <div>代号:</div>
+                        <div><b>{{serverInfos.code}}</b></div>
+                        <div>名称:</div>
+                        <div><b>{{serverInfos.name}}</b></div>
+                        <div>类型:</div>
+                        <div><b>{{gameInfos.showName}}</b></div>
+                        <div>密码:</div>
+                        <div><b>{{serverInfos.password}}</b></div>
+                    </div>
+                </div>
+                <div class="box box-players">
+                    <div class="box-content">
+                        <div class="players">
+                            <div class="player-item" v-for="player in players">
+                                <div class="player-infos">
+                                    <div class="item-img">
+                                        <img v-bind:src="'../assets/players/'+player.img"
+                                            onerror="console.log('IMGError','others')">
+                                    </div>
+                                    <div class="item-name">
+                                        <span>{{player.showName}}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="box box-logs">
+                    <div class="box-header">
+                        <div class="box-tools">
+                            <div class="btn btn-refresh" onclick="clearLog()">
+                                <i class="fa fa-refresh"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-content">
+                        <div class="logs">
+                            <div class="log-item" v-for="log in serverRoom.logs">
+                                {{getPlayer(log.code).showName}}: {{log.content}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="section-modal modal-games" v-show="showModal=='games'">
+            <div class="modals">
+                <div class="modal-header">
+                    <h3 class="titles"></h3>
+                    <div class="header-tools">
+                        <div class="btn btn-close">
+                            <i class="fa fa-close"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-contents">
+                </div>
+            </div>
+        </section>
+    </div>
+    <div id="notify"></div>
+
+    <script src="./libs/vue/vue.min.js"></script>
+
+    <script src="./libs/signalr/signalr.min.js"></script>
+    <script src="./libs/signalr/chat.js"></script>
+    <script src="./libs/pubs/extend.js"></script>
+    <script src="./libs/notify/notify.js"></script>
+
+    <script src="./games/com.js"></script>
+    <script src="./games/game.js"></script>
+    <script src="./games/pokers.js"></script>
+
+    <script src="./index.js"></script>
+
+    <!-- onload -->
+    <script>
+        window.onload = function () {
+            // 生成用户代码
+            app.keyCode = ExString.uuid()
+            //
+            startCon()
+        }
+    </script>
+
+    <!-- Message -->
+    <script type="text/javascript">
+        // 建立之后触发
+        function afterStart() {
+            getlistRooms()
+        }
+        // 处理信息
+        function getMessage(mes) {
+            handleMessage(mes)
+            //
+            handleWuzi(mes)
+        }
+    </script>
+
+    <!-- Vue -->
+    <script>
+        var app = new Vue({
+            el: "#app",
+            data: {
+                // 页面通用信息
+                // 关键代码
+                keyCode: "", // 个人识别码
+                // 局域网信息
+                serverInfos: {
+                    type: "single", // single|multi
+                    //
+                    isActive: false, // 状态
+                    code: "", // 通讯代码
+                    name: "", // 名称
+                    password: "", // 密码
+                    limit: 4, // 人数限制
+                },
+                // 游戏规则信息
+                gameInfos: {
+                    type: "", // 类别
+                    showName: "", // 名称
+                    category: "",
+                    playerCount: 0, // 玩家人数
+                    model: "s", // 是否可单人多人
+                    rules: {}, // 游戏规则
+                },
+                // 游戏状态
+                gameStatus: {
+                    step: "setting", // setting|waiting|server - game|pause|end
+                },
+                // 玩家信息
+                activeCode: "", // 当前操作玩家
+                players: [], // 玩家列表
+                // 页面所需信息
+                // 游戏选择界面
+                showModal: "",
+                games: [],
+                //
+                createInfos: {
+                    name: "",
+                    password: "",
+                    playerName: "",
+                },
+                //
+                serverList: [], // 房间列表
+                addInfos: {// 加入信息
+                    code: "",
+                    name: "",
+                    password: "",
+                    playerName: "",
+                },
+                //
+                roomStatus: "waiting", // waiting|search
+                //
+                playerMark: false, // 玩家信息时候已经标记上不同游戏的区别
+                serverRoom: {
+                    status: "正在等待操作",
+                    logs: [],
+                },
+                // 服务器主机信息
+                gamingInfos: null, // 存储当前游戏的进度信息
+                lastWinnerCode: "", // 上一场赢家
+            },
+            computed: {
+            },
+            methods: {
+                // 显示规则状态
+                getStatus: function (key, config) {
+                    return this.gameInfos.rules[key] === config.value ? 'active' : ''
+                },
+                // 切换规则
+                setConfig: function (key, value) {
+                    changeRule(key, value)
+                },
+                // 选择房间
+                triggerSelectRoom: function (item) {
+                    console.info("[Game]: ", "***** 选择房间 *****")
+                    this.addInfos.code = item.code
+                    this.addInfos.name = item.name
+                },
+                // 显示玩家信息
+                getPlayer: function (code) {
+                    return this.players.find(item => item.code == code)
+                },
+            },
+            created: function () { // data和methods已挂载
+                this.games = gameList
+                this.gameInfos = this.games[0]
+            },
+            mounted: function () { // Dom已挂载
+            },
+        })
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,29 @@
+.players {
+    height: 120px;
+    justify-content: space-around;
+}
+
+.fa.active {
+    color: green;
+}
+
+.canvas {
+    position: relative;
+    width: 750px;
+    margin: 0 auto;
+}
+
+#canvas {
+    display: block;
+    margin: 0 auto;
+    background: #f4f4f4;
+}
+
+.item-hightlight {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 30px;
+    height: 30px;
+    border: 2px solid red;
+}

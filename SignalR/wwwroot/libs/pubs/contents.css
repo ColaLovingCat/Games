@@ -1,0 +1,96 @@
+﻿* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.btn {
+    cursor: pointer;
+    padding: 10px;
+    border: none;
+}
+
+img {
+    width: 100%;
+    height: 100%;
+}
+
+.ele-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+section {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+}
+
+section.section-modal {
+    background: #ffffff3d;
+}
+
+.modal-header {
+    position: relative;
+}
+
+.header-tools {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+/* 表单控件 */
+.form-control {
+    padding: 10px 5px;
+    display: flex;
+    column-gap: 15px;
+}
+
+.form-control label {
+    width: 50px;
+    text-align: right;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.form-control input {
+    border: 0;
+    border-bottom: 1px solid gray;
+    background: #ffffff8d;
+}
+
+/* 提示信息 */
+#notify {
+    position: absolute;
+    width: 300px;
+    top: 0;
+    right: 0;
+    z-index: 10;
+    padding: 15px;
+}
+
+.notify-item {
+    margin-bottom: 10px;
+    padding: 10px 5px;
+    border-radius: 5px;
+    color: #fff;
+    background: #0000008d;
+}
+
+.notify-item.item-success {
+    background: #00ff008d;
+}
+
+.notify-item.item-info {
+    background: #0000ff8d;
+}
+
+.notify-item.item-error {
+    background: #ff00008d;
+}

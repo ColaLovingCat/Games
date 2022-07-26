@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link rel="stylesheet" href="../../libs/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../../libs/pubs/contents.css">
+
+    <link rel="stylesheet" href="../../games/game.css">
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+    <div>
+        <div class="section-game">
+            <div id="app">
+            </div>
+        </div>
+        <div id="notify"></div>
+    </div>
+
+    <script src="../../libs/vue/vue.min.js"></script>
+
+    <script src="../../libs/signalr/signalr.min.js"></script>
+    <script src="../../libs/signalr/chat.js"></script>
+    <script src="../../libs/pubs/extend.js"></script>
+    <script src="../../libs/notify/notify.js"></script>
+
+    <script src="../../games/game.js"></script>
+    <script src="../../games/com.js"></script>
+
+    <script src="./index.js"></script>
+
+    <script>
+        window.onload = function () {
+            // 获取用户代码
+            app.keyCode = ExWeb.query("keyCode")
+            //
+            startCon()
+        }
+    </script>
+
+    <script>
+        // 建立之后触发
+        function afterStart() {
+            // 获取服务信息
+            getinfoServer()
+        }
+        // 处理信息
+        function getMessage(mes) {
+            // 处理信息
+            handleMessage(mes)
+        }
+    </script>
+
+    <script>
+        var app = new Vue({
+            el: "#app",
+            data: {
+                // 页面通用信息
+                keyCode: "",
+                serverInfos: {
+                    type: "single",
+                    //
+                    isActive: false,
+                    code: "",
+                    name: "",
+                    password: "",
+                    limit: 4,
+                },
+                gameInfos: {
+                    type: "",
+                    category: "",
+                    showName: "",
+                    playerCount: 0,
+                    rules: {},
+                },
+                gameStatus: {
+                    step: "game",
+                },
+                activeCode: "", // 当前操作玩家
+                players: [],
+                // 页面所需信息
+            },
+            computed: {
+                hostPlayer: function () {
+                    return groupPlayers(this.players, this.keyCode).playerInfo
+                },
+                otherPlayers: function () {
+                    return groupPlayers(this.players, this.keyCode).otherPlayers
+                },
+            },
+        })
+    </script>
+</body>
+
+</html>
