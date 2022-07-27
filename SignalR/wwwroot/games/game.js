@@ -60,13 +60,16 @@ const gameList = [
     //
     { // 五子棋
         type: "wuzi",
-        category: "chess",
         showName: "五子棋",
+        isActive: true,
+        //
+        category: "chess",
         playerCount: 2,
         model: "multi",
         rules: {
-            size: 25, // 棋盘大小
-            first: 0, // 先手
+            size: 25,
+            first: 0,
+            canRegret: false,
         },
         ruleList: [
             {
@@ -85,12 +88,22 @@ const gameList = [
                     { value: 1, text: "白棋" },
                 ]
             },
+            {
+                title: "可以悔棋",
+                key: "canRegret",
+                configs: [
+                    { value: false, text: "否" },
+                    { value: true, text: "是" },
+                ]
+            },
         ]
     },
     { // 象棋
-        type: "wuzi",
-        category: "chess",
+        type: "CNchess",
         showName: "象棋",
+        isActive: false,
+        //
+        category: "chess",
         playerCount: 2,
         model: "multi",
         rules: {
@@ -101,8 +114,10 @@ const gameList = [
     //
     { // UNO
         type: "uno",
-        category: "poker",
         showName: "UNO",
+        isActive: false,
+        //
+        category: "poker",
         playerCount: 4,
         model: "single",
         rulesPoker: {
@@ -143,17 +158,21 @@ const gameList = [
     },
     { // 斗地主
         type: "doudizhu",
-        category: "poker",
         showName: "斗地主",
+        isActive: false,
+        //
+        category: "poker",
         playerCount: 3,
         model: "multi",
         rules: {},
         ruleList: []
     },
     { // 麻将
-        type: "majiang",
-        category: "poker",
+        type: "mahjong",
         showName: "麻将",
+        isActive: false,
+        //
+        category: "poker",
         playerCount: 4,
         model: "multi",
         rules: {
@@ -172,9 +191,11 @@ const gameList = [
         ]
     },
     { // 西洋骨牌
-        type: "gupai",
-        category: "poker",
+        type: "domino",
         showName: "西洋骨牌",
+        isActive: false,
+        //
+        category: "poker",
         playerCount: 4,
         model: "single",
         rules: {
@@ -185,9 +206,11 @@ const gameList = [
         ],
     },
     { // 三国杀
-        type: "sanguokill",
-        category: "poker",
+        type: "threekill",
         showName: "三国杀",
+        isActive: false,
+        //
+        category: "poker",
         playerCount: 8,
         model: "multi",
         rules: {
@@ -200,8 +223,10 @@ const gameList = [
     },
     { // 蜘蛛纸牌
         type: "spider",
-        category: "poker",
         showName: "蜘蛛纸牌",
+        isActive: false,
+        //
+        category: "poker",
         playerCount: 1,
         model: "single",
         rules: {
@@ -211,9 +236,11 @@ const gameList = [
     },
     //
     { // 飞行棋
-        type: "wuzi",
-        category: "map",
+        type: "ludo",
         showName: "飞行棋",
+        isActive: false,
+        //
+        category: "map",
         playerCount: 4,
         model: "multi",
         rules: {
@@ -222,9 +249,11 @@ const gameList = [
         ]
     },
     { // 大富翁
-        type: "wuzi",
-        category: "map",
+        type: "monopoly",
         showName: "大富翁",
+        isActive: false,
+        //
+        category: "map",
         playerCount: 4,
         model: "multi",
         rules: {
@@ -235,8 +264,10 @@ const gameList = [
     //
     { // 扫雷
         type: "mine",
-        category: "others",
         showName: "扫雷",
+        isActive: true,
+        //
+        category: "others",
         playerCount: 1,
         model: "single",
         rules: {
@@ -248,8 +279,10 @@ const gameList = [
     },
     { // 贪吃蛇
         type: "snack",
-        category: "others",
         showName: "贪吃蛇",
+        isActive: false,
+        //
+        category: "others",
         playerCount: 1,
         model: "single",
         rules: {
@@ -260,8 +293,10 @@ const gameList = [
     },
     { // 俄罗斯方块
         type: "tetris",
-        category: "others",
         showName: "俄罗斯方块",
+        isActive: false,
+        //
+        category: "others",
         playerCount: 1,
         model: "single",
         rules: {
@@ -271,8 +306,10 @@ const gameList = [
     },
     { // 消消乐
         type: "xiaoxiaole",
-        category: "others",
         showName: "消消乐",
+        isActive: true,
+        //
+        category: "others",
         playerCount: 1,
         model: "single",
         rules: {

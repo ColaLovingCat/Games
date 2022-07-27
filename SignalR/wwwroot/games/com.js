@@ -1,14 +1,15 @@
 ﻿// 通讯信息的处理
 function handleMessage(mes) {
     if (mes.to == app.keyCode || mes.to == 'all') { // 需要我处理的信息
-        switch (mes.category) {
-            // 有人在收集房间列表
-            case "RoomList_Request": {
-                // 当我是房主且房间为激活状态且等待状态时，回发房间信息
-                if (checkRoom()) {
+        let step = mes.category.split("_")[0]
+        let mark = step == checkRoom() ? true : step == "Server" ? checkServer() : !checkServer()
+        if (mark) {
+            switch (mes.category) {
+                // [开始界面] 有人在收集房间列表
+                case "Room_ListRequest": {
                     let host = app.players.find(item => item.code == app.serverInfos.code)
                     let message = {
-                        category: "RoomList_Response",
+                        category: "Game_RoomInfoResponse",
                         from: app.keyCode,
                         to: mes.from,
                         contents: JSON.stringify({
@@ -19,239 +20,281 @@ function handleMessage(mes) {
                         remarks: "",
                     }
                     sendMessage(message)
+                    break
                 }
-                break
-            }
-            // 别人返回房间信息
-            case "RoomList_Response": {
-                let { server, len, host } = JSON.parse(mes.contents)
-                app.serverList.push({
-                    code: server.code,
-                    name: server.name,
-                    hostName: host.showName,
-                    isLock: server.password != "",
-                    limit: server.limit,
-                    currentCount: len,
-                })
-                break
-            }
-            // 有人通过房间名模糊加入房间
-            case "RoomName_Search": {
-                // 当我是房主且房间为激活状态且等待状态时
-                if (checkRoom()) {
-                    // 当房间名相同时
-                    if (app.serverInfos.name == mes.contents) {
-
-                    }
+                // [开始界面] 别人返回房间信息
+                case "Game_RoomInfoResponse": {
+                    let { server, len, host } = JSON.parse(mes.contents)
+                    app.serverList.push({
+                        code: server.code,
+                        name: server.name,
+                        hostName: host.showName,
+                        isLock: server.password != "",
+                        limit: server.limit,
+                        currentCount: len,
+                    })
+                    break
                 }
-                break
-            }
-            // 有人精确申请加入房间
-            case "RoomInvolve_Request": {
-                // 有空位
-                if (app.players.length < app.serverInfos.limit) {
-                    const { playerName, password } = JSON.parse(mes.contents)
-                    // 当服务器需要密码但密码不对
-                    if (app.serverInfos.password != "" && app.serverInfos.password != password) {
-                        let message = {
-                            category: "RoomInvolve_Response",
-                            from: app.keyCode,
-                            to: mes.from,
-                            contents: JSON.stringify({
-                                isSuccess: false,
-                                message: "密码不对",
-                            }),
-                            remarks: "",
-                        }
-                        sendMessage(message)
-                    }
-                    else {
-                        // 创建玩家
-                        let playerInfos = createPlayer(app.players.length, playerName, app.gameInfos.type, mes.from, false)
-                        app.players.push(playerInfos)
-                        // 回复
-                        app.players.map(player => {
-                            if (player.keyCode != app.keyCode) {
-                                let message = {
-                                    category: "RoomInvolve_Response",
-                                    from: app.keyCode,
-                                    to: mes.from,
-                                    contents: JSON.stringify({
-                                        isSuccess: true,
-                                    }),
-                                    remarks: "",
-                                }
-                                sendMessage(message)
-                            }
-                        })
-                        // 通知玩家更新玩家列表
-                        app.players.map(player => {
-                            if (player.keyCode != app.keyCode) {
-                                let message = {
-                                    category: "Player_Refresh",
-                                    from: app.keyCode,
-                                    to: mes.from,
-                                    contents: JSON.stringify({
-                                        server: app.serverInfos,
-                                        players: app.players
-                                    }),
-                                    remarks: "",
-                                }
-                                sendMessage(message)
-                            }
-                        })
-                    }
-                }
-                // 没位置了
-                else {
-                    let message = {
-                        category: "RoomInvolve_Response",
-                        from: app.keyCode,
-                        to: mes.from,
-                        contents: JSON.stringify({
-                            isSuccess: false,
-                            message: "房间已满",
-                        }),
-                        remarks: "",
-                    }
-                    sendMessage(message)
-                }
-                break
-            }
-            // 申请加入房间的回复
-            case "RoomInvolve_Response": {
-                let isSuccess = JSON.parse(mes.contents)
-                // 成功
-                if (isSuccess) {
-                    app.gameStatus.step = "waiting"
-                    app.roomStatus = "waiting"
-                }
-                // 失败
-                else {
-                    app.gameStatus.step = "setting"
-                }
-                break
-            }
-            // [游戏界面] 房主来同步玩家信息
-            case "Player_Refresh": {
-                let { server, players } = JSON.parse(mes.contents)
-                app.serverInfos = server
-                app.players = players
-                break
-            }
-            // [服务器界面] 有人请求服务器信息
-            case "ServerInfo_Request": {
-                if (checkServer()) {
-                    if (app.serverInfos.code == mes.to) {
-                        //
-                        onlinePlayer(mes.from)
-                        log(mes.from, "已加入游戏并请求服务器信息")
-                        // 标记不同游戏玩家所需信息
-                        if (!app.playerMark) {
-                            markPlayer()
-                            app.playerMark = true
-                        }
-                        // 发送信息
-                        returnServer(mes.from)
-                    }
-                }
-                break
-            }
-            // 服务器返回房间信息
-            case "ServerInfo_Response": {
-                if (!checkServer()) {
-                    let { server, game, players, gaming } = JSON.parse(mes.contents)
-                    if (app.gameInfos.type == game.type) {
-                        app.serverInfos = server
-                        app.gameInfos = game
-                        app.players = players
-                        //
-                        if (gaming) {
-                            recoverGamingInfos(gaming)
-                        }
-                        else {
-                            // 房主同步完服务器信息
-                            if (server.code == app.keyCode) {
-                                // 房主通知其他玩家进入游戏
+                // [开始界面] 有人通过房间名模糊加入房间
+                case "Room_NameSearch": {
+                    const { infos } = JSON.parse(mes.contents)
+                    // 找着了
+                    if (app.serverInfos.name == infos.name) {
+                        // 有空位
+                        if (app.players.length < app.serverInfos.limit) {
+                            // 密码对
+                            if (app.serverInfos.password == "" || app.serverInfos.password == infos.password) {
+                                // 创建玩家
+                                let playerInfos = createPlayer(app.players.length, infos.playerName, app.gameInfos.type, mes.from, false)
+                                app.players.push(playerInfos)
+                                // 回复
                                 app.players.map(player => {
-                                    if (player.code != app.keyCode) {
+                                    if (player.keyCode != app.keyCode) {
                                         let message = {
-                                            category: "GameStart_Request",
+                                            category: "Room_InvolveResponse",
                                             from: app.keyCode,
-                                            to: player.code,
-                                            contents: "",
+                                            to: mes.from,
+                                            contents: JSON.stringify({
+                                                isSuccess: true,
+                                            }),
+                                            remarks: "",
+                                        }
+                                        sendMessage(message)
+                                    }
+                                })
+                                // 通知玩家更新玩家列表
+                                app.players.map(player => {
+                                    if (player.keyCode != app.keyCode) {
+                                        let message = {
+                                            category: "Game_PlayerRefresh",
+                                            from: app.keyCode,
+                                            to: mes.from,
+                                            contents: JSON.stringify({
+                                                server: app.serverInfos,
+                                                players: app.players
+                                            }),
                                             remarks: "",
                                         }
                                         sendMessage(message)
                                     }
                                 })
                             }
-                            // 玩家同步完服务器信息
-                            else {
-                                let message = {
-                                    category: "Server_GameReady",
-                                    from: app.keyCode,
-                                    to: mes.from,
-                                    contents: "",
-                                    remarks: "",
+                        }
+                    }
+                    break
+                }
+                // [开始界面] 有人精确申请加入房间
+                case "Room_InvolveRequest": {
+                    // 有空位
+                    if (app.players.length < app.serverInfos.limit) {
+                        const { infos } = JSON.parse(mes.contents)
+                        // 密码对
+                        if (app.serverInfos.password == "" || app.serverInfos.password == infos.password) {
+                            // 创建玩家
+                            let playerInfos = createPlayer(app.players.length, infos.playerName, app.gameInfos.type, mes.from, false)
+                            app.players.push(playerInfos)
+                            // 回复
+                            app.players.map(player => {
+                                if (player.keyCode != app.keyCode) {
+                                    let message = {
+                                        category: "Room_InvolveResponse",
+                                        from: app.keyCode,
+                                        to: mes.from,
+                                        contents: JSON.stringify({
+                                            isSuccess: true,
+                                        }),
+                                        remarks: "",
+                                    }
+                                    sendMessage(message)
                                 }
-                                sendMessage(message)
+                            })
+                            // 通知玩家更新玩家列表
+                            app.players.map(player => {
+                                if (player.keyCode != app.keyCode) {
+                                    let message = {
+                                        category: "Game_PlayerRefresh",
+                                        from: app.keyCode,
+                                        to: mes.from,
+                                        contents: JSON.stringify({
+                                            server: app.serverInfos,
+                                            players: app.players
+                                        }),
+                                        remarks: "",
+                                    }
+                                    sendMessage(message)
+                                }
+                            })
+                        }
+                        else {
+                            let message = {
+                                category: "Room_InvolveResponse",
+                                from: app.keyCode,
+                                to: mes.from,
+                                contents: JSON.stringify({
+                                    isSuccess: false,
+                                    message: "密码不对",
+                                }),
+                                remarks: "",
+                            }
+                            sendMessage(message)
+                        }
+                    }
+                    // 没位置
+                    else {
+                        let message = {
+                            category: "Room_InvolveResponse",
+                            from: app.keyCode,
+                            to: mes.from,
+                            contents: JSON.stringify({
+                                isSuccess: false,
+                                message: "房间已满",
+                            }),
+                            remarks: "",
+                        }
+                        sendMessage(message)
+                    }
+                    break
+                }
+                // [开始界面] 申请加入房间的回复
+                case "Room_InvolveResponse": {
+                    let isSuccess = JSON.parse(mes.contents)
+                    // 成功
+                    if (isSuccess) {
+                        app.gameStatus.step = "waiting"
+                        app.roomStatus = "waiting"
+                    }
+                    // 失败
+                    else {
+                        app.gameStatus.step = "setting"
+                    }
+                    break
+                }
+                // [开始界面] 房主来同步玩家信息
+                case "Game_PlayerRefresh": {
+                    let { server, players } = JSON.parse(mes.contents)
+                    app.serverInfos = server
+                    app.players = players
+                    break
+                }
+                // [服务器界面] 有人请求服务器信息
+                case "Server_InfoRequest": {
+                    if (checkServer()) {
+                        if (app.serverInfos.code == mes.to) {
+                            //
+                            onlinePlayer(mes.from)
+                            log(mes.from, "已加入游戏并请求服务器信息")
+                            // 标记不同游戏玩家所需信息
+                            if (!app.playerMark) {
+                                markPlayer()
+                                app.playerMark = true
+                            }
+                            // 发送信息
+                            returnServer(mes.from)
+                        }
+                    }
+                    break
+                }
+                // [游戏界面] 服务器返回房间信息
+                case "Game_InfoResponse": {
+                    if (!checkServer()) {
+                        let { server, game, players, gaming } = JSON.parse(mes.contents)
+                        if (app.gameInfos.type == game.type) {
+                            app.serverInfos = server
+                            app.gameInfos = game
+                            app.players = players
+                            //
+                            if (gaming) {
+                                recoverGamingInfos(gaming)
+                            }
+                            else {
+                                // 房主同步完服务器信息
+                                if (server.code == app.keyCode) {
+                                    // 房主通知其他玩家进入游戏
+                                    app.players.map(player => {
+                                        if (player.code != app.keyCode) {
+                                            let message = {
+                                                category: "Game_StartRequest",
+                                                from: app.keyCode,
+                                                to: player.code,
+                                                contents: "",
+                                                remarks: "",
+                                            }
+                                            sendMessage(message)
+                                        }
+                                    })
+                                }
+                                // 玩家同步完服务器信息
+                                else {
+                                    let message = {
+                                        category: "Server_GameReady",
+                                        from: app.keyCode,
+                                        to: mes.from,
+                                        contents: "",
+                                        remarks: "",
+                                    }
+                                    sendMessage(message)
+                                }
                             }
                         }
                     }
+                    break
                 }
-                break
-            }
-            // 房主要求玩家进入游戏
-            case "GameStart_Request": {
-                // 携带个人keyCode和hostCode跳转
-                if (app.gameStatus.step == "waiting") {
-                    window.open("pages/" + app.gameInfos.type + "/index.html?keyCode=" + app.keyCode + "&hostCode=" + app.serverInfos.code, "_self")
-                }
-                break
-            }
-            // [服务器界面] 服务器接受到玩家已准备好的信息
-            case "Server_GameReady": {
-                let mark = true
-                app.players.map(player => {
-                    if (!player.isOnline) { mark = false }
-                })
-                if (mark) {
-                    log(app.serverInfos.code, "所有玩家进入完毕")
-                    // 当有玩家重新进入时
-                    if (app.gamingInfos) {
-                        log(mes.from, "我重新进来了")
-                        nextLoop(app.activeCode)
+                // [游戏界面] 房主要求玩家进入游戏
+                case "Game_StartRequest": {
+                    // 携带个人keyCode和hostCode跳转
+                    if (app.gameStatus.step == "waiting") {
+                        window.open("pages/" + app.gameInfos.type + "/index.html?keyCode=" + app.keyCode + "&hostCode=" + app.serverInfos.code, "_self")
                     }
-                    else {
-                        // 初始化游戏信息
-                        initialGamingInfos()
-                        // 决定第一回合起始玩家
-                        app.lastWinnerCode == "" ? nextLoop(app.serverInfos.code) : nextLoop(app.lastWinnerCode)
-                    }
+                    break
                 }
-                break
-            }
-            // [服务器界面] 服务器接受到玩家回合结束
-            case "Game_LoopEnd": {
-                loop(mes.from, "该玩家回合已结束")
-                nextLoop(mes.contents)
-                break
-            }
-            // [游戏界面] 服务器接受到玩家回合结束
-            case "Game_Loop": {
-                app.activeCode = mes.contents
-                break
-            }
-            // [游戏界面] 游戏结束了
-            case "Game_End": {
-                let playerInfo = app.players.find(player => player.code == mes.contents)
-                showSuccess(playerInfo.showName + "赢了!")
-                //
-                app.gameStatus.step = "end"
-                break
+                // [服务器界面] 服务器接受到玩家已准备好的信息
+                case "Server_GameReady": {
+                    let mark = true
+                    app.players.map(player => {
+                        if (!player.isOnline) { mark = false }
+                    })
+                    if (mark) {
+                        log(app.serverInfos.code, "所有玩家进入完毕")
+                        // 当有玩家重新进入时
+                        if (app.gamingInfos) {
+                            log(mes.from, "我重新进来了")
+                            nextLoop(app.activeCode)
+                        }
+                        else {
+                            // 初始化游戏信息
+                            initialGamingInfos()
+                            // 决定第一回合起始玩家
+                            app.lastWinnerCode == "" ? nextLoop(app.serverInfos.code) : nextLoop(app.lastWinnerCode)
+                        }
+                    }
+                    break
+                }
+                // [服务器界面] 服务器接受到玩家回合结束
+                case "Game_LoopEnd": {
+                    loop(mes.from, "该玩家回合已结束")
+                    nextLoop(mes.contents)
+                    break
+                }
+                // [游戏界面] 服务器接受到玩家回合结束
+                case "Game_Loop": {
+                    app.activeCode = mes.contents
+                    break
+                }
+                // [游戏界面] 游戏结束了
+                case "Game_End": {
+                    let playerInfo = app.players.find(player => player.code == mes.contents)
+                    showSuccess(playerInfo.showName + "赢了!")
+                    //
+                    showModal("end")
+                    break
+                }
+                // [服务器界面] 重开游戏
+                case "Server_Restart": {
+                    break
+                }
             }
         }
+
     }
 }
 
@@ -325,6 +368,7 @@ function checkRoom() {
         && app.serverInfos.isActive // 激活状态
         && app.gameStatus.step == 'waiting' // 正在等待别人加入
 }
+// 当前为服务器信息
 function checkServer() {
     return app.serverInfos.type == 'multi' // 多人房
         && app.serverInfos.code == app.keyCode // 我是房主
@@ -381,7 +425,7 @@ function onlinePlayer(code) {
 }
 function offlinePlayer() {
     let message = {
-        category: "ServerInfo_GameOffline",
+        category: "Server_GameOffline",
         from: app.keyCode,
         to: hostCode,
         contents: "",
@@ -394,7 +438,7 @@ function offlinePlayer() {
 function getinfoServer() {
     let hostCode = ExWeb.query("hostCode") ? ExWeb.query("hostCode") : app.keyCode // 我是玩家或房主
     let message = {
-        category: "ServerInfo_Request",
+        category: "Server_InfoRequest",
         from: app.keyCode,
         to: hostCode,
         contents: "",
@@ -407,7 +451,7 @@ function returnServer(code) {
     gameInfos.ruleList = null
     //
     let message = {
-        category: "ServerInfo_Response",
+        category: "Game_InfoResponse",
         from: app.serverInfos.code,
         to: code,
         contents: JSON.stringify({

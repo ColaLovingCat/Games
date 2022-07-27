@@ -32,17 +32,49 @@ section {
 }
 
 section.section-modal {
-    background: #ffffff3d;
+    display: none;
+    background: #ffffff6d;
+    z-index: 100;
+}
+
+.modals {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 900px;
+    height: 500px;
+    background: #cccccc;
 }
 
 .modal-header {
     position: relative;
+    height: 40px;
+}
+
+.modal-header .titles {
+    line-height: 40px;
+    padding: 0 15px;
 }
 
 .header-tools {
     position: absolute;
     top: 0;
     right: 0;
+}
+.modal-header .btn-close {
+    background: transparent;
+}
+
+.modal-contents {
+    padding: 25px;
+}
+
+.box-footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 10px;
 }
 
 /* 表单控件 */

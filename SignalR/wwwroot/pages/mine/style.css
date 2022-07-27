@@ -1,0 +1,109 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.game-infos {
+    display: flex;
+    justify-content: center;
+    padding: 5px 0;
+}
+
+.game-status {
+    line-height: 50px;
+}
+
+.game-btn {
+    margin: 0 100px;
+}
+
+.btn-start {
+    cursor: pointer;
+    width: 50px;
+    height: 50px;
+    border: none;
+    font-size: 30px;
+}
+
+.btn-start::after {
+    content: '\f118';
+    font-family: FontAwesome;
+}
+
+.game-map {
+    margin: 0 auto;
+}
+
+.game-end {
+    text-align: center;
+}
+
+.map-item {
+    position: relative;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    text-align: center;
+    line-height: 30px;
+}
+
+.map-item::before, .map-item::after {
+    position: absolute;
+    width: 100%;
+    top: 0;
+    left: 0;
+    text-align: center;
+    font-family: FontAwesome;
+}
+
+.map-item.item-cover {
+    color: rgb(128, 128, 128);
+    background-color: rgb(128, 128, 128);
+}
+
+.map-item.item-cover.cover-flag::after {
+    content: "\f024";
+    color: red;
+}
+
+.map-item.item-cover.cover-question::after {
+    content: "\f128";
+    color: black;
+}
+
+.map-item.item-active {
+    background-color: rgb(192, 192, 192);
+}
+
+.map-item.item-active .txt-1 {
+    color: blue;
+}
+
+.map-item.item-active .txt-2 {
+    color: green;
+}
+
+.map-item.item-active .txt-3 {
+    color: yellow;
+}
+
+.map-item.item-active .txt-4 {
+    color: orange;
+}
+
+.map-item.item-active .txt-5, .map-item.item-active .txt-6, .map-item.item-active .txt-7, .map-item.item-active .txt-8 {
+    color: red;
+}
+
+.map-item.item-active.active-mine::after {
+    content: "\f1e2";
+    color: black;
+}
+
+.map-item.item-bom::before {
+    content: "\f00d";
+    color: red;
+    font-size: 30px;
+    z-index: 1;
+}

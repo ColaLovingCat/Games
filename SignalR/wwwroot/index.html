@@ -16,6 +16,7 @@
 
 <body>
     <div id="app">
+        <!-- 开始界面 -->
         <section class="settings" v-if="gameStatus.step=='setting'||gameStatus.step=='waiting'">
             <!-- 创建界面 -->
             <div class="setting-content ele-center">
@@ -39,41 +40,48 @@
                                 </div>
                                 <div class="box-content">
                                     <!-- 游戏规则配置 -->
-                                    <div class="setting-item" v-for="set in gameInfos.ruleList" v-bind:key="set.key">
-                                        <div class="setting-title">{{set.title}}:</div>
-                                        <div class="setting-btns">
-                                            <button type="button" class="btn btn-option" v-for="config in set.configs"
-                                                v-bind:class="getStatus(set.key, config)"
-                                                v-on:click="setConfig(set.key,config.value)">
-                                                <span title="">{{config.text}}</span>
-                                            </button>
-                                        </div>
-                                    </div>
+                                    <table>
+                                        <tr class="setting-item" v-for="set in gameInfos.ruleList" v-bind:key="set.key">
+                                            <td class="setting-title">
+                                                <span>{{set.title}}: </span>
+                                            </td>
+                                            <td>
+                                                <div class="setting-btns">
+                                                    <button type="button" class="btn btn-option"
+                                                        v-for="config in set.configs"
+                                                        v-bind:class="getStatus(set.key, config)"
+                                                        v-on:click="setConfig(set.key,config.value)">
+                                                        <span title="">{{config.text}}</span>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
                                 </div>
                             </div>
                             <!-- 单人 -->
-                            <div class="box box-single" v-bind:class="serverInfos.type=='single'?'active':''"
+                            <div class="box box-single" v-bind:class="serverInfos.model=='single'?'active':''"
                                 onclick="changeType('single')">
                                 <div class="box-header">
                                     <h4 class="title">单机</h4>
                                 </div>
                                 <div class="box-content">
-                                    <div class="option-items" v-show="serverInfos.type=='single'">
-                                        <img src="./assets/imgs/settings/single-white.png" alt="">
+                                    <div class="option-items" v-show="serverInfos.model=='single'">
+                                        <img src="./assets/imgs/system/settings/single-white.png" alt="">
                                     </div>
-                                    <div class="option-icon" v-show="serverInfos.type!='single'">
-                                        <img src="./assets/imgs/settings/single.png" alt="">
+                                    <div class="option-icon" v-show="serverInfos.model!='single'">
+                                        <img src="./assets/imgs/system/settings/single.png" alt="">
                                     </div>
                                 </div>
                             </div>
                             <!-- 多人 -->
-                            <div class="box box-multi" v-bind:class="serverInfos.type=='multi'?'active':''"
+                            <div class="box box-multi" v-bind:class="serverInfos.model=='multi'?'active':''"
                                 onclick="changeType('multi')">
                                 <div class="box-header">
                                     <h4 class="title">联机</h4>
                                 </div>
                                 <div class="box-content">
-                                    <div class="option-items" v-show="serverInfos.type=='multi'">
+                                    <div class="option-items" v-show="serverInfos.model=='multi'">
                                         <div class="form-control">
                                             <label>房间名: </label>
                                             <input type="text" name="" v-model="createInfos.name">
@@ -87,8 +95,8 @@
                                             <input type="text" name="" v-model="createInfos.playerName">
                                         </div>
                                     </div>
-                                    <div class="option-icon" v-show="serverInfos.type!='multi'">
-                                        <img src="./assets/imgs/settings/multi.png" alt="">
+                                    <div class="option-icon" v-show="serverInfos.model!='multi'">
+                                        <img src="./assets/imgs/system/settings/multi.png" alt="">
                                     </div>
                                 </div>
                             </div>
@@ -165,7 +173,8 @@
                     <div class="players room-players">
                         <div class="box box-playerItem" v-for="player in players">
                             <div class="item-img">
-                                <img v-bind:src="'./assets/players/'+player.img" onerror="console.log('Error','room')">
+                                <img v-bind:src="'./assets/imgs/players/'+player.img"
+                                    onerror="console.log('Error','room')">
                             </div>
                             <div class="item-name">{{player.showName}}</div>
                         </div>
@@ -182,6 +191,8 @@
                 </div>
             </div>
         </section>
+
+        <!-- 服务器界面 -->
         <section class="section-server settings" v-if="gameStatus.step=='server'">
             <div class="section-header">
                 <h4>{{serverRoom.status}}</h4>
@@ -198,6 +209,9 @@
                         <div>密码:</div>
                         <div><b>{{serverInfos.password}}</b></div>
                     </div>
+                    <div class="box-footer">
+                        <button type="button" class="btn btn-back">结束游玩</button>
+                    </div>
                 </div>
                 <div class="box box-players">
                     <div class="box-content">
@@ -205,7 +219,7 @@
                             <div class="player-item" v-for="player in players">
                                 <div class="player-infos">
                                     <div class="item-img">
-                                        <img v-bind:src="'../assets/players/'+player.img"
+                                        <img v-bind:src="'../assets/imgs/players/'+player.img"
                                             onerror="console.log('IMGError','others')">
                                     </div>
                                     <div class="item-name">
@@ -234,17 +248,29 @@
                 </div>
             </div>
         </section>
-        <section class="section-modal modal-games" v-show="showModal=='games'">
+
+        <!-- 游戏弹窗 -->
+        <section class="section-modal modal-games">
             <div class="modals">
                 <div class="modal-header">
                     <h3 class="titles"></h3>
                     <div class="header-tools">
-                        <div class="btn btn-close">
+                        <div class="btn btn-close" onclick="hideModal()">
                             <i class="fa fa-close"></i>
                         </div>
                     </div>
                 </div>
                 <div class="modal-contents">
+                    <div class="games">
+                        <div class="game-item" v-for="(game,index) of games" v-bind:class="game.isActive?'':'disabled'"
+                            v-on:click="triggerSelectGame(index)">
+                            <div class="item-img">
+                                <img v-bind:src="'./assets/imgs/system/games/'+game.type+'.png'"
+                                    onerror="this.src='./assets/imgs/system/games/games.png'" alt="">
+                            </div>
+                            <span>{{game.showName}}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -298,7 +324,7 @@
                 keyCode: "", // 个人识别码
                 // 局域网信息
                 serverInfos: {
-                    type: "single", // single|multi
+                    model: "single", // single|multi
                     //
                     isActive: false, // 状态
                     code: "", // 通讯代码
@@ -310,7 +336,8 @@
                 gameInfos: {
                     type: "", // 类别
                     showName: "", // 名称
-                    category: "",
+                    isActive: "",  // 是否可玩
+                    category: "", // 大类别
                     playerCount: 0, // 玩家人数
                     model: "s", // 是否可单人多人
                     rules: {}, // 游戏规则
@@ -324,7 +351,6 @@
                 players: [], // 玩家列表
                 // 页面所需信息
                 // 游戏选择界面
-                showModal: "",
                 games: [],
                 //
                 createInfos: {
@@ -355,13 +381,26 @@
             computed: {
             },
             methods: {
-                // 显示规则状态
-                getStatus: function (key, config) {
-                    return this.gameInfos.rules[key] === config.value ? 'active' : ''
+                // 选择游戏
+                triggerSelectGame: function (index) {
+                    console.info("[Game]: ", "***** 选择游戏 *****")
+                    const game = this.games[index]
+                    if (game.isActive) {
+                        this.gameInfos = this.games[index]
+                        this.serverInfos.model = this.gameInfos.model == "multi" ? "multi" : "single"
+                        //
+                        hideModal("games")
+                    }
+                    else {
+                        showError("游戏暂时无法游玩")
+                    }
                 },
-                // 切换规则
+                // 选择规则
                 setConfig: function (key, value) {
                     changeRule(key, value)
+                },
+                getStatus: function (key, config) {
+                    return this.gameInfos.rules[key] === config.value ? 'active' : ''
                 },
                 // 选择房间
                 triggerSelectRoom: function (item) {
@@ -369,6 +408,7 @@
                     this.addInfos.code = item.code
                     this.addInfos.name = item.name
                 },
+
                 // 显示玩家信息
                 getPlayer: function (code) {
                     return this.players.find(item => item.code == code)
@@ -376,7 +416,9 @@
             },
             created: function () { // data和methods已挂载
                 this.games = gameList
+                // 默认加载五子棋
                 this.gameInfos = this.games[0]
+                this.serverInfos.model = this.gameInfos.model
             },
             mounted: function () { // Dom已挂载
             },

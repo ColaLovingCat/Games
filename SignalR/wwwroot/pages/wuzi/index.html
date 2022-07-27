@@ -21,7 +21,7 @@
                 <div class="player-item" v-bind:class="hostPlayer.code==activeCode?'':'disabled'">
                     <div class="player-infos">
                         <div class="item-img">
-                            <img v-bind:src="'../../assets/players/'+hostPlayer.img"
+                            <img v-bind:src="'../../assets/imgs/players/'+hostPlayer.img"
                                 onerror="console.log('IMGError','others')">
                         </div>
                         <div class="item-name">
@@ -34,7 +34,7 @@
                     v-bind:class="player.code==activeCode?'':'disabled'">
                     <div class="player-infos">
                         <div class="item-img">
-                            <img v-bind:src="'../../assets/players/'+player.img"
+                            <img v-bind:src="'../../assets/imgs/players/'+player.img"
                                 onerror="console.log('IMGError','others')">
                         </div>
                         <div class="item-name">
@@ -50,8 +50,22 @@
         </div>
         <canvas id="canvas" height="750" width="750"></canvas>
     </div>
-    <div class="section-end">
-    </div>
+    <!-- 结束画面 -->
+    <section class="section-modal modal-end">
+        <div class="modals">
+            <div class="modal-header">
+                <h3 class="titles">游戏结束</h3>
+                <div class="header-tools">
+                    <div class="btn btn-close" onclick="hideModal()">
+                        <i class="fa fa-close"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-contents">
+                <button type="button" class="btn btn-restart">重新开始</button>
+            </div>
+        </div>
+    </section>
     <div id="notify"></div>
 
     <script src="../../libs/vue/vue.min.js"></script>
@@ -106,7 +120,7 @@
                 keyCode: "", // 个人识别码
                 // 局域网信息
                 serverInfos: {
-                    type: "single", // single|multi
+                    model: "single", // single|multi
                     //
                     isActive: false, // 状态
                     code: "", // 通讯代码

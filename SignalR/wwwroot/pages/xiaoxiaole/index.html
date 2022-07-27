@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="app">
+        <button id="btn">shuffle</button>
+        <lable>Score: <span>{{game?.score}}</span></lable>
+        <lable v-if="game?.combo>0">Combo: <span>{{game?.combo}}</span></lable>
+        <div id="canvas">
+        </div>
+    </div>
+
+    <script src="../../libs/vue/vue.min.js"></script>
+    <script src="./modules.js"></script>
+
+    <script>
+        var app = new Vue({
+            el: "#app",
+            data: {
+                game: null
+            }
+        })
+    </script>
+
+    <script>
+        const canvas = document.getElementById('canvas')
+        canvas.onclick = () => {
+            app.game.clickCell(event.target.parentNode)
+        };
+
+        const btn = document.getElementById('btn')
+        btn.onclick = () => {
+            app.game.genShuffle();
+        }
+
+        app.game = new GameMap(6, 10, 50, canvas)
+        app.game.genMatrix().genRandoms()
+        //
+        app.game.init().genCellMap()
+        app.game.genLoop()
+    </script>
+</body>
+
+</html>

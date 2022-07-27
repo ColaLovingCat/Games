@@ -1,5 +1,3 @@
-
-
 // 棋盘
 const chess = document.getElementById("canvas")
 const pencil = chess.getContext("2d")

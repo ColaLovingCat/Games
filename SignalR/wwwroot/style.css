@@ -1,25 +1,25 @@
 ﻿.settings {
-    background-image: url("./assets/imgs/settings/bg.png");
+    background-image: url("./assets/imgs/system/settings/bg.png");
     background-size: 100% 100%;
     background-repeat: no-repeat;
     background-attachment: fixed;
     z-index: 10;
 }
 
-    .settings::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: -1;
-        background-image: url("./assets/imgs/settings/bg.png");
-        background-repeat: no-repeat;
-        background-attachment: fixed;
-        background-size: cover;
-        filter: blur(10px);
-    }
+.settings::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    background-image: url("./assets/imgs/system/settings/bg.png");
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+    filter: blur(10px);
+}
 
 .section-header .title {
     padding: 15px 0;
@@ -54,9 +54,9 @@
     padding: 10px;
 }
 
-    .box-header .title {
-        text-align: center;
-    }
+.box-header .title {
+    text-align: center;
+}
 
 .box-tools {
     position: absolute;
@@ -64,10 +64,10 @@
     right: 0;
 }
 
-    .box-tools .btn {
-        background: transparent;
-        color: #0000005d;
-    }
+.box-tools .btn {
+    background: transparent;
+    color: #0000005d;
+}
 
 .box-content {
     min-height: 180px;
@@ -86,10 +86,10 @@
     grid-area: a;
 }
 
-    .box-create .box-content,
-    .box-list .box-content {
-        min-height: 250px;
-    }
+.box-create .box-content,
+.box-list .box-content {
+    min-height: 250px;
+}
 
 .box-single {
     cursor: pointer;
@@ -101,11 +101,11 @@
     grid-area: c;
 }
 
-    .box-single.active,
-    .box-multi.active {
-        color: #fff;
-        background: #51d6da;
-    }
+.box-single.active,
+.box-multi.active {
+    color: #fff;
+    background: #51d6da;
+}
 
 .box-single,
 .box-multi {
@@ -113,12 +113,10 @@
 }
 
 .setting-item {
-    display: flex;
     padding: 5px 0;
 }
 
 .setting-title {
-    min-width: 150px;
     padding: 10px;
     padding-right: 20px;
     text-align: right;
@@ -144,11 +142,11 @@
     border: 1px solid #778085;
 }
 
-    .btn-option.active {
-        color: #fff;
-        border: 1px solid #51d6da;
-        background: #51d6da;
-    }
+.btn-option.active {
+    color: #fff;
+    border: 1px solid #51d6da;
+    background: #51d6da;
+}
 
 .btn-start {
     padding: 10px 30px;
@@ -160,11 +158,11 @@
     width: 280px;
 }
 
-    .option-items img {
-        display: block;
-        width: 150px;
-        margin: 0 auto;
-    }
+.option-items img {
+    display: block;
+    width: 150px;
+    margin: 0 auto;
+}
 
 .option-icon {
     width: 120px;
@@ -186,13 +184,13 @@
     display: flex;
 }
 
-    .server-item:hover {
-        background-color: #ffffff3d;
-    }
+.server-item:hover {
+    background-color: #ffffff3d;
+}
 
-    .server-item > * {
-        flex: 1;
-    }
+.server-item > * {
+    flex: 1;
+}
 
 /* Room */
 .setting-room {
@@ -217,12 +215,12 @@
     column-gap: 10px;
 }
 
-    .box-playerItem .item-img {
-        width: 50px;
-        height: 50px;
-        overflow: hidden;
-        border-radius: 50%;
-    }
+.box-playerItem .item-img {
+    width: 50px;
+    height: 50px;
+    overflow: hidden;
+    border-radius: 50%;
+}
 
 .content-footer {
     padding: 10px 0;
@@ -289,25 +287,25 @@
     column-gap: 0;
 }
 
-    .other-pokers .poker-item {
-        width: 50px;
-        height: 90px;
-    }
+.other-pokers .poker-item {
+    width: 50px;
+    height: 90px;
+}
 
 .section-server {
     text-align: center;
     padding: 5% 20%;
 }
 
-    .section-server .section-contents {
-        height: -webkit-fill-available;
-        padding: 10px;
-        display: grid;
-        grid-template-areas: 'infos logs' 'players logs';
-        grid-template-columns: 1fr 500px;
-        row-gap: 20px;
-        column-gap: 20px;
-    }
+.section-server .section-contents {
+    height: -webkit-fill-available;
+    padding: 10px;
+    display: grid;
+    grid-template-areas: "infos logs" "players logs";
+    grid-template-columns: 1fr 500px;
+    row-gap: 20px;
+    column-gap: 20px;
+}
 
 .box-infos {
     grid-area: infos;
@@ -329,4 +327,36 @@
 .logs {
     text-align: left;
     line-height: 30px;
+}
+
+.games {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 25px;
+    row-gap: 30px;
+}
+
+.game-item {
+    cursor: pointer;
+    width: 100px;
+    height: 120px;
+    color: green;
+    text-align: center;
+    font-weight: 700;
+    border-radius: 5px;
+    background: #ffffff3d;
+}
+
+.game-item.disabled {
+    filter: grayscale(1);
+}
+
+.game-item:hover {
+    background: #ffffff6d;
+}
+
+.game-item .item-img {
+    width: 80px;
+    margin: 0 auto;
+    margin-top: 8px;
 }

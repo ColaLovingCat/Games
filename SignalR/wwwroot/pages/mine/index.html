@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link rel="stylesheet" type="text/css" href="../../libs/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+    <div id="app" class="games">
+        <div class="game-infos">
+            <div class="game-status">
+                Time: {{setting.timer}}
+            </div>
+            <div class="game-btn">
+                <button type="button" class="btn-start" onclick="initialGame()"></button>
+            </div>
+            <div class="game-status">
+                {{getInfo().flag}}/{{setting.mine}}
+            </div>
+        </div>
+        <div class="game-maps">
+            <table class="game-map">
+                <tr class="map-row" v-for="(rows,rowIndex) in map">
+                    <td class="map-item" v-for="(col,colIndex) in rows"
+                        v-bind:class="[col.isCover?'item-cover':'item-active',getCover(rowIndex,colIndex),col.isMine?'active-mine':'',col.isBom?'item-bom':'']"
+                        v-on:click="markActive(rowIndex,colIndex)"
+                        v-on:contextmenu.prevent="markFlag(rowIndex,colIndex)">
+                        <span v-bind:class="'txt-'+getCount(rowIndex,colIndex)">{{getCount(rowIndex,colIndex)}}</span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="game-end">{{gameInfo.status}}</div>
+    </div>
+
+    <script type="text/javascript" src="../../libs/vue/vue.min.js"></script>
+
+    <script>
+        var app = new Vue({
+            el: "#app",
+            data: {
+                gameInfo: {
+                    status: "Waiting",
+                    end: false,
+                    clickCount: 0,
+                    countDown: null,
+                },
+                setting: {
+                    col: 16,
+                    row: 16,
+                    mine: 30,
+                    timer: 160,
+                },
+                map: [],
+            },
+            methods: {
+                getCover: function (locX, locY) {
+                    let result = "";
+                    //
+                    let item = this.map[locX][locY];
+                    switch (item.coverInfo) {
+                        case 1: {
+                            result = "cover-flag";
+                            break;
+                        }
+                        case 2: {
+                            result = "cover-question";
+                            break;
+                        }
+                    }
+                    //
+                    return result;
+                },
+                getCount: function (locX, locY) {
+                    let result;
+                    let item = this.map[locX][locY];
+                    //
+                    if (item.isCover || item.isMine) {
+                        result = "";
+                    }
+                    else {
+                        result = getinfoNum(locX, locY)
+                        if (result == 0) { result = ""; }
+                    }
+                    //
+                    return result;
+                },
+                //
+                getInfo: function () {
+                    let result = {
+                        flag: 0,
+                        left: 0,
+                    };
+                    this.map.map(rows => {
+                        rows.map(item => {
+                            if (item.isCover) {
+                                if (item.coverInfo == 1) {
+                                    result.flag += 1;
+                                }
+                                else {
+                                    result.left += 1;
+                                }
+                            }
+                        })
+                    })
+                    // 标记完判断是否胜利
+                    if (result.flag == this.setting.mine) {
+                        let temp = 0;
+                        this.map.map(rows => {
+                            rows.map(item => {
+                                if (item.isCover && item.coverInfo == 1 && item.isMine) {
+                                    temp++;
+                                }
+                            })
+                        })
+                        if (temp == this.setting.mine) {
+                            endGame();
+                        }
+                    }
+                    // 胜利
+                    if (result.flag + result.left == this.setting.mine) {
+                        endGame();
+                    }
+                    //
+                    return result;
+                },
+            }
+        });
+    </script>
+
+    <script>
+        initialGame();
+        // 初始化
+        function initialGame() {
+            app.gameInfo = {
+                status: "Start",
+                end: false,
+                clickCount: 0,
+            };
+            app.setting.timer = 160;
+            //
+            clearInter();
+            //
+            putMap();
+            putMines();
+        }
+        // 生成地图
+        function putMap() {
+            app.map = [];
+            let { row, col, mine } = app.setting;
+            for (let i = 0; i < row; i++) {
+                let temp = []
+                for (let j = 0; j < col; j++) {
+                    temp.push({
+                        isMine: false,
+                        //
+                        isCover: true,
+                        coverInfo: 0,
+                        //
+                        isBom: false,
+                    })
+                }
+                app.map.push(temp);
+            }
+        }
+        // 铺雷
+        function putMines() {
+            let putNum = 0;
+            let { row, col, mine } = app.setting;
+            while (putNum < mine) {
+                let putRow = Math.floor(Math.random() * row);
+                let putColumn = Math.floor(Math.random() * col);
+                //
+                let putItem = app.map[putRow][putColumn];
+                if (!putItem.isMine) {
+                    putItem.isMine = true;
+                    putNum++;
+                }
+            }
+        }
+        // 游戏
+        function endGame(status = true) {
+            app.gameInfo.status = status ? "You Win" : "You Lose";
+            //
+            app.gameInfo.end = true;
+            if (app.gameInfo.countDown) { clearInterval(app.gameInfo.countDown); }
+            //
+            app.map.map(rows => {
+                rows.map(item => {
+                    item.isCover = false;
+                })
+            })
+        }
+        function clearInter() {
+            var end = setInterval(function () {
+            }, 1000);
+            // 停止定时器
+            for (var i = 1; i <= end; i++) {
+                clearInterval(i);
+            }
+        }
+        // 点击
+        function markActive(locX, locY) {
+            if (app.gameInfo.clickCount == 0) {
+                if (!app.gameInfo.countDown) {
+                    app.gameInfo.countDown = setInterval(function () {
+                        app.setting.timer -= 1;
+                        if (app.setting.timer == 0) {
+                            endGame(false);
+                        }
+                    }, 1000);
+                }
+            }
+            //
+            let item = app.map[locX][locY];
+            if (item.isCover && item.coverInfo == 0) { // 可点击
+                item.isCover = false;
+                app.gameInfo.clickCount++;
+                // 踩雷
+                if (item.isMine) {
+                    item.isBom = true;
+                    endGame(false);
+                    //
+                    console.log("Bom!!!!!!!!!!");
+                }
+                // 不是雷区
+                else {
+                    if (getinfoNum(locX, locY) == 0) {
+                        checkAround(locX, locY);
+                    };
+                }
+            }
+        }
+        function checkAround(locX, locY) {
+            for (let i = locX - 1; i < locX + 2; i++) {
+                for (let j = locY - 1; j < locY + 2; j++) {
+                    //
+                    if (limitIndex(i, 0, app.setting.col - 1) && limitIndex(j, 0, app.setting.row - 1)) {
+                        if (i != locX || j != locY) {
+                            let item = app.map[i][j];
+                            if (item.isCover) {
+                                markActive(i, j)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // 右击
+        function markFlag(locX, locY) {
+            let item = app.map[locX][locY];
+            if (item.isCover) {
+                item.coverInfo += 1;
+                if (item.coverInfo > 2) { item.coverInfo = 0 }
+                // 标记flag数量已超出
+                if (app.getInfo().flag > app.setting.mine && item.coverInfo == 1) {
+                    item.coverInfo = 2;
+                }
+            }
+        }
+    </script>
+
+    <script>
+        function getinfoNum(locX, locY) {
+            let result = 0;
+            for (let i = locX - 1; i < locX + 2; i++) {
+                for (let j = locY - 1; j < locY + 2; j++) {
+                    //
+                    if (limitIndex(i, 0, app.setting.col - 1) && limitIndex(j, 0, app.setting.row - 1)) {
+                        if (i != locX || j != locY) {
+                            if (app.map[i][j].isMine) {
+                                result += 1
+                            }
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+    </script>
+
+    <script>
+        function limitIndex(num, min, max) {
+            let result = true;
+            if (min != null && num < min) { result = false; }
+            if (max != null && num > max) { result = false; }
+            return result;
+        }
+    </script>
+
+    <script>
+        function test() {
+            document.querySelectorAll(".active-mine").forEach(item => { item.style.background = "blue" })
+        }
+    </script>
+</body>
+
+</html>

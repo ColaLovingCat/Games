@@ -353,3 +353,23 @@ function deepCopyObj(obj) {
     }
     return objCopy;
 }
+
+// 模态窗
+function showModal(type) {
+    let ele = document.getElementsByClassName("modal-" + type)[0]
+    ele.style.display = "block"
+}
+function hideModal(type = null) {
+    let ele
+    if (type) {
+        ele = document.getElementsByClassName("modal-" + type)[0]
+    }
+    else {
+        const e = window.event || arguments.callee.caller.arguments[0]
+        ele = e.target
+        while (ele.className.indexOf("section-modal") == -1) {
+            ele = ele.parentNode
+        }
+    }
+    ele.style.display = "none"
+}

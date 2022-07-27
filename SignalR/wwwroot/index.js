@@ -1,8 +1,3 @@
-// 切换游戏
-function showModal(type) {
-    app.showModal = type
-}
-
 // 切换游戏规则
 function changeRule(key, value) {
     console.info("[Game]: ", "***** 切换规则 *****")
@@ -10,19 +5,25 @@ function changeRule(key, value) {
 }
 
 // 切换模式
-function changeType(type) {
+function changeType(model) {
     console.info("[Game]: ", "***** 切换模式 *****")
-    app.serverInfos.type = type
+    if (app.gameInfos.model.indexOf(model) > -1) {
+        app.serverInfos.model = model
+    }
+    else {
+        showError("无法切换到该模式")
+    }
 }
 
 // 
 function createGame() {
-    if (app.serverInfos.type == "single") {
+    if (app.serverInfos.model == "single") {
         console.info("[Game]: ", "***** 创建单机 *****")
         // 生成本机玩家并标记
-        let playerInfo = createPlayer(0, null, app.gameInfos.type, null, false)
+        let playerInfo = createPlayer(0, null, app.gameInfos.type, app.keyCode, false)
         app.players.push(playerInfo)
         // 标记房主
+        app.serverInfos.name = "单人房"
         app.serverInfos.code = playerInfo.code
         // 开始游戏
         startGame()
@@ -66,15 +67,24 @@ function checkRoomName(name) {
 function addGame() {
     if (app.addInfos.code == "") {
         console.info("[Game]: ", "***** 搜索房间 *****")
+        let message = {
+            category: "Room_NameSearch",
+            from: app.keyCode,
+            to: "all",
+            contents: JSON.stringify({
+                infos: app.addInfos
+            }),
+            remarks: ""
+        }
+        sendMessage(message)
     }
     else {
         let message = {
-            category: "RoomInvolve_Request",
+            category: "Room_InvolveRequest",
             from: app.keyCode,
             to: app.addInfos.code,
             contents: JSON.stringify({
-                playerName: app.addInfos.playerName,
-                password: app.addInfos.password
+                infos: app.addInfos
             }),
             remarks: ""
         }
@@ -104,7 +114,7 @@ function getlistRooms() {
     console.info("[Game]: ", "***** 搜索房间列表 *****")
     app.serverList = []
     sendMessage({
-        category: "RoomList_Request",
+        category: "Room_ListRequest",
         from: app.keyCode,
         to: "all",
         contents: "",
