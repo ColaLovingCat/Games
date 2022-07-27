@@ -1,3 +1,19 @@
+// 获取房间列表
+function getlistRooms() {
+    console.info("[Game]: ", "***** 搜索房间列表 *****")
+    app.serverList = []
+    sendMessage({
+        category: "Room_ListRequest",
+        from: app.keyCode,
+        to: "all",
+        contents: "",
+        remarks: "",
+    })
+}
+function refreshRoom() {
+    getlistRooms()
+}
+
 // 切换游戏规则
 function changeRule(key, value) {
     console.info("[Game]: ", "***** 切换规则 *****")
@@ -15,7 +31,7 @@ function changeType(model) {
     }
 }
 
-// 
+// 创建游戏
 function createGame() {
     if (app.serverInfos.model == "single") {
         console.info("[Game]: ", "***** 创建单机 *****")
@@ -108,19 +124,4 @@ function startGame() {
 // 进入等待
 function showRoom(type) {
     app.gameStatus.step = type
-}
-// 
-function getlistRooms() {
-    console.info("[Game]: ", "***** 搜索房间列表 *****")
-    app.serverList = []
-    sendMessage({
-        category: "Room_ListRequest",
-        from: app.keyCode,
-        to: "all",
-        contents: "",
-        remarks: "",
-    })
-}
-function refreshRoom() {
-    getlistRooms()
 }

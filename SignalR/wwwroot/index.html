@@ -198,6 +198,7 @@
                 <h4>{{serverRoom.status}}</h4>
             </div>
             <div class="section-contents">
+                <!-- 服务器信息 -->
                 <div class="box box-infos">
                     <div class="box-content">
                         <div>代号:</div>
@@ -213,6 +214,7 @@
                         <button type="button" class="btn btn-back">结束游玩</button>
                     </div>
                 </div>
+                <!-- 玩家信息 -->
                 <div class="box box-players">
                     <div class="box-content">
                         <div class="players">
@@ -230,6 +232,7 @@
                         </div>
                     </div>
                 </div>
+                <!-- 操作日志 -->
                 <div class="box box-logs">
                     <div class="box-header">
                         <div class="box-tools">
@@ -249,7 +252,7 @@
             </div>
         </section>
 
-        <!-- 游戏弹窗 -->
+        <!-- 游戏选择列表 -->
         <section class="section-modal modal-games">
             <div class="modals">
                 <div class="modal-header">
@@ -274,7 +277,18 @@
                 </div>
             </div>
         </section>
+
+        <!-- 等待界面 -->
+        <section class="section-loading" v-show="loading">
+            <div class="loading">
+                <div class="loading-item">
+                    <i class="fa fa-"></i>
+                </div>
+            </div>
+        </section>
     </div>
+
+    <!-- 通知信息 -->
     <div id="notify"></div>
 
     <script src="./libs/vue/vue.min.js"></script>
@@ -349,6 +363,8 @@
                 // 玩家信息
                 activeCode: "", // 当前操作玩家
                 players: [], // 玩家列表
+                //
+                loading: false,
                 // 页面所需信息
                 // 游戏选择界面
                 games: [],

@@ -57,7 +57,7 @@ function groupPlayers(players, playerCode) {
 }
 
 const gameList = [
-    //
+    // chess
     { // 五子棋
         type: "wuzi",
         showName: "五子棋",
@@ -111,7 +111,7 @@ const gameList = [
         ruleList: [
         ]
     },
-    //
+    // poker
     { // UNO
         type: "uno",
         showName: "UNO",
@@ -234,7 +234,7 @@ const gameList = [
         ruleList: [
         ]
     },
-    //
+    // map
     { // 飞行棋
         type: "ludo",
         showName: "飞行棋",
@@ -261,7 +261,7 @@ const gameList = [
         ruleList: [
         ]
     },
-    //
+    // other
     { // 扫雷
         type: "mine",
         showName: "扫雷",
