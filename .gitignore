@@ -1,6 +1,6 @@
 #
 .vs/*
-bin/*
+*/bin/*
 */Debug/*
 */Release/*
-obj/*
+*/obj/*
