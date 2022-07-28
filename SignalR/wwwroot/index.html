@@ -279,12 +279,8 @@
         </section>
 
         <!-- 等待界面 -->
-        <section class="section-loading" v-show="loading">
-            <div class="loading">
-                <div class="loading-item">
-                    <i class="fa fa-"></i>
-                </div>
-            </div>
+        <section class="section-loading" v-show="loading.value>0">
+            <div class="loading"></div>
         </section>
     </div>
 
@@ -363,9 +359,19 @@
                 // 玩家信息
                 activeCode: "", // 当前操作玩家
                 players: [], // 玩家列表
-                //
-                loading: false,
                 // 页面所需信息
+                loading: {
+                    value: 0,
+                    load: function () {
+                        this.value++
+                    },
+                    end: function () {
+                        this.value--
+                    },
+                    clear: function () {
+                        this.value = 0
+                    },
+                },
                 // 游戏选择界面
                 games: [],
                 //
