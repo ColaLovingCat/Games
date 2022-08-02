@@ -3,16 +3,16 @@
  * @params keyCode 默认为 player+(index + 1)
  * @params isRobot 默认为 机器人
  */
-function createPlayer(index, name, type, keyCode = null, isRobot = true) {
+function createPlayer(index, name, keyCode = null, isRobot = true) {
     let result = {
         code: keyCode ? keyCode : "player" + (index + 1),
         order: index, // 排序
         type: isRobot ? "robot" : "user", // user|robot
-        isOnline: false, // 是否在线
+        isOnline: isRobot, // 是否在线
         isActive: false, // 激活
         status: "", // 状态 ban|plus
         //
-        showName: name ? name : "player" + (index + 1),
+        showName: name ? name : "玩家" + (index + 1),
         img: "player" + (index + 1) + ".png", // 头像
         //
         isResponse: true, // 轮询时标识位
@@ -115,7 +115,7 @@ const gameList = [
     { // UNO
         type: "uno",
         showName: "UNO",
-        isActive: false,
+        isActive: true,
         //
         category: "poker",
         playerCount: 4,

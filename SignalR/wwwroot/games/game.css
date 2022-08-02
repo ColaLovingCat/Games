@@ -15,6 +15,7 @@
 }
 
 .player-infos {
+    position: relative;
     width: 80px;
 }
 
@@ -25,8 +26,30 @@
     overflow: hidden;
 }
 
+.player-infos .item-status {
+    position: absolute;
+    top: -8px;
+    right: -10px;
+    width: 35px;
+    height: 35px;
+    color: #8a8a8a;
+    font-size: 28px;
+}
+
+.player-infos .item-status.active {
+    color: #92c353;
+}
+
 .player-infos .item-name {
     text-align: center;
+    display: flex;
+    justify-content: center;
+    column-gap: 5px;
+}
+
+.player-infos .icon-robot {
+    width: 20px;
+    height: 20px;
 }
 
 /** Poker **/

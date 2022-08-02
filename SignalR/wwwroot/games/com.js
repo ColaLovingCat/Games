@@ -2,7 +2,7 @@
 function handleMessage(mes) {
     if (mes.to == app.keyCode || mes.to == 'all') { // 需要我处理的信息
         let step = mes.category.split("_")[0]
-        let mark = step == checkRoom() ? true : step == "Server" ? checkServer() : !checkServer()
+        let mark = step == "Room" ? checkRoom() : step == "Server" ? checkServer() : !checkServer()
         if (mark) {
             switch (mes.category) {
                 // [开始界面] 有人在收集房间列表
@@ -178,63 +178,56 @@ function handleMessage(mes) {
                 }
                 // [服务器界面] 有人请求服务器信息
                 case "Server_InfoRequest": {
-                    if (checkServer()) {
-                        if (app.serverInfos.code == mes.to) {
-                            //
-                            onlinePlayer(mes.from)
-                            log(mes.from, "已加入游戏并请求服务器信息")
-                            // 标记不同游戏玩家所需信息
-                            if (!app.playerMark) {
-                                markPlayer()
-                                app.playerMark = true
-                            }
-                            // 发送信息
-                            returnServer(mes.from)
+                    if (app.serverInfos.code == mes.to) {
+                        onlinePlayer(mes.from)
+                        log(mes.from, "已加入游戏并请求服务器信息")
+                        // 标记不同游戏玩家所需信息
+                        if (!app.playerMark) {
+                            markPlayer()
+                            app.playerMark = true
                         }
+                        // 发送信息
+                        returnServer(mes.from)
                     }
                     break
                 }
                 // [游戏界面] 服务器返回房间信息
                 case "Game_InfoResponse": {
-                    if (!checkServer()) {
-                        let { server, game, players, gaming } = JSON.parse(mes.contents)
-                        if (app.gameInfos.type == game.type) {
-                            app.serverInfos = server
-                            app.gameInfos = game
-                            app.players = players
-                            //
-                            if (gaming) {
-                                recoverGamingInfos(gaming)
-                            }
-                            else {
-                                // 房主同步完服务器信息
-                                if (server.code == app.keyCode) {
-                                    // 房主通知其他玩家进入游戏
-                                    app.players.map(player => {
-                                        if (player.code != app.keyCode) {
-                                            let message = {
-                                                category: "Game_StartRequest",
-                                                from: app.keyCode,
-                                                to: player.code,
-                                                contents: "",
-                                                remarks: "",
-                                            }
-                                            sendMessage(message)
+                    let { server, game, players, gaming } = JSON.parse(mes.contents)
+                    if (app.gameInfos.type == game.type) {
+                        app.serverInfos = server
+                        app.gameInfos = game
+                        app.players = players
+                        //
+                        if (gaming) {
+                            recoverGamingInfos(gaming)
+                        }
+                        else {
+                            // 房主同步完服务器信息
+                            if (server.code == app.keyCode) {
+                                // 房主通知其他玩家进入游戏
+                                app.players.map(player => {
+                                    if (player.code != app.keyCode && player.type != "robot") {
+                                        let message = {
+                                            category: "Game_StartRequest",
+                                            from: app.keyCode,
+                                            to: player.code,
+                                            contents: "",
+                                            remarks: "",
                                         }
-                                    })
-                                }
-                                // 玩家同步完服务器信息
-                                else {
-                                    let message = {
-                                        category: "Server_GameReady",
-                                        from: app.keyCode,
-                                        to: mes.from,
-                                        contents: "",
-                                        remarks: "",
+                                        sendMessage(message)
                                     }
-                                    sendMessage(message)
-                                }
+                                })
                             }
+                            // 玩家同步完服务器信息
+                            let message = {
+                                category: "Server_GameReady",
+                                from: app.keyCode,
+                                to: mes.from,
+                                contents: "",
+                                remarks: "",
+                            }
+                            sendMessage(message)
                         }
                     }
                     break
@@ -292,74 +285,28 @@ function handleMessage(mes) {
                 case "Server_Restart": {
                     break
                 }
+                // [游戏界面] 我拿到牌了
+                case "Game_UpdatePokers": {
+                    let { type, pokers } = JSON.parse(mes.contents)
+                    pokers.map(poker => poker.isCover = false)
+                    console.log("Testing: ", pokers, type, app.players[0].pokers)
+                    console.log(0)
+                    updatePokers(app.keyCode, pokers, type)
+                    break
+                }
+                // [游戏界面] 我要更新别人的手牌
+                case "Game_RefreshPokers": {
+                    let { code, pokers } = JSON.parse(mes.contents)
+                    updatePokers(code, pokers, "update")
+                    break
+                }
             }
         }
 
     }
 }
 
-// 单独游戏的信息处理
-function handleWuzi(mes) {
-    if (mes.to == app.keyCode || mes.to == 'all') { // 需要我处理的信息
-        if (mes.category.split("_")[0] == "Server" ? checkServer() : !checkServer()) {
-            switch (mes.category) {
-                // [服务器界面] 有玩家落子了
-                case "Server_ChessPut": {
-                    // 接受到玩家的落子并更新至其他玩家
-                    let { loc } = JSON.parse(mes.contents)
-                    log(mes.from, "我落子在:" + loc.x + ";" + loc.y)
-                    if (app.gamingInfos.chessMap[loc.x][loc.y].value > -1) {
 
-                    }
-                    else {
-                        app.gamingInfos.chessMap[loc.x][loc.y].value = loc.color
-                        app.players.map(player => {
-                            log(player.code, "我已更新落子")
-                            let message = {
-                                category: "Game_ChessUpdate",
-                                from: app.serverInfos.code,
-                                to: player.code,
-                                contents: JSON.stringify({
-                                    loc
-                                }),
-                                remarks: "",
-                            }
-                            sendMessage(message)
-                        })
-                        // 这次落子胜利
-                        if (WUZI_CheckWin(loc.x, loc.y)) {
-                            log(mes.from, "我赢了")
-                            app.players.map(player => {
-                                log(player.code, "我收到有人赢了")
-                                let message = {
-                                    category: "Game_End",
-                                    from: app.serverInfos.code,
-                                    to: player.code,
-                                    contents: mes.from,
-                                    remarks: "",
-                                }
-                                sendMessage(message)
-                            })
-                        }
-                        // 下个回合
-                        else {
-                            let palyerIndex = app.players.findIndex(player => player.code == mes.from)
-                            let nextIndex = palyerIndex + 1 < app.players.length ? palyerIndex + 1 : 0
-                            nextLoop(app.players[nextIndex].code)
-                        }
-                    }
-                    break
-                }
-                // [游戏界面] 更新落子
-                case "Game_ChessUpdate": {
-                    let { loc } = JSON.parse(mes.contents)
-                    putChess(loc.x, loc.y, loc.color)
-                    break
-                }
-            }
-        }
-    }
-}
 
 // 当前为正在等待别人加入Room的状态
 function checkRoom() {
@@ -367,13 +314,6 @@ function checkRoom() {
         && app.serverInfos.code == app.keyCode // 我是房主
         && app.serverInfos.isActive // 激活状态
         && app.gameStatus.step == 'waiting' // 正在等待别人加入
-}
-// 当前为服务器信息
-function checkServer() {
-    return app.serverInfos.type == 'multi' // 多人房
-        && app.serverInfos.code == app.keyCode // 我是房主
-        && app.serverInfos.isActive // 激活状态
-        && app.gameStatus.step == 'server' // 已经开始
 }
 
 // 下一回合
@@ -434,7 +374,14 @@ function offlinePlayer() {
     sendMessage(message)
 }
 
-// 获取服务器信息
+// 服务器信息
+// 当前为服务器主机
+function checkServer() {
+    return app.serverInfos.code == app.keyCode // 我是房主
+        && app.serverInfos.isActive // 激活状态
+        && app.gameStatus.step == 'server' // 已经开始
+}
+// 获取
 function getinfoServer() {
     let hostCode = ExWeb.query("hostCode") ? ExWeb.query("hostCode") : app.keyCode // 我是玩家或房主
     let message = {
@@ -446,6 +393,7 @@ function getinfoServer() {
     }
     sendMessage(message)
 }
+// 返回
 function returnServer(code) {
     let gameInfos = ExObject.copy(app.gameInfos)
     gameInfos.ruleList = null
@@ -463,11 +411,12 @@ function returnServer(code) {
         remarks: "",
     }
     sendMessage(message)
-    //
+    // 如果当前游戏已进行
     if (app.gamingInfos) {
         nextLoop(app.activeCode)
     }
 }
+// 重进后恢复游戏数据
 function recoverGamingInfos(infos) {
     switch (app.gameInfos.type) {
         case "wuzi": {
@@ -502,20 +451,91 @@ function initialGamingInfos() {
         }
         case "uno": {
             UNO_InitialGamingInfos()
-            // 开始发牌
-            let firstCount = app.gameInfos.rulesPoker.initialCount * app.players.length
-            while (firstCount > 0) {
+            // 起始手牌
+            log(app.serverInfos.code, "开始发牌")
+            let count = app.gameInfos.rulesPoker.initialCount
+            for (let loop = 0; loop < count; loop++) {
                 app.players.map(player => {
-                    putPokers(1, player.code)
-                    firstCount--;
+                    let pokers = putPokers(1, player.code)
                 })
             }
+            log(app.serverInfos.code, "发牌结束")
+            break
+        }
+    }
+}
+// 初始化游戏存储信息
+function robotLoop(index) {
+    log(app.serverInfos.code, "到了机器人的回合")
+    switch (app.gameInfos.type) {
+        case "uno": {
             break
         }
     }
 }
 
 // 五子棋
+function handleWuzi(mes) {
+    if (mes.to == app.keyCode || mes.to == 'all') { // 需要我处理的信息
+        if (mes.category.split("_")[0] == "Server" ? checkServer() : !checkServer()) {
+            switch (mes.category) {
+                // [服务器界面] 有玩家落子了
+                case "Server_ChessPut_Wuzi": {
+                    // 接受到玩家的落子并更新至其他玩家
+                    let { loc } = JSON.parse(mes.contents)
+                    log(mes.from, "我落子在:" + loc.x + ";" + loc.y)
+                    if (app.gamingInfos.chessMap[loc.x][loc.y].value > -1) {
+
+                    }
+                    else {
+                        app.gamingInfos.chessMap[loc.x][loc.y].value = loc.color
+                        app.players.map(player => {
+                            log(player.code, "我已更新落子")
+                            let message = {
+                                category: "Game_ChessUpdate_Wuzi",
+                                from: app.serverInfos.code,
+                                to: player.code,
+                                contents: JSON.stringify({
+                                    loc
+                                }),
+                                remarks: "",
+                            }
+                            sendMessage(message)
+                        })
+                        // 这次落子胜利
+                        if (WUZI_CheckWin(loc.x, loc.y)) {
+                            log(mes.from, "我赢了")
+                            app.players.map(player => {
+                                log(player.code, "我收到有人赢了")
+                                let message = {
+                                    category: "Game_End",
+                                    from: app.serverInfos.code,
+                                    to: player.code,
+                                    contents: mes.from,
+                                    remarks: "",
+                                }
+                                sendMessage(message)
+                            })
+                        }
+                        // 下个回合
+                        else {
+                            let palyerIndex = app.players.findIndex(player => player.code == mes.from)
+                            let nextIndex = palyerIndex + 1 < app.players.length ? palyerIndex + 1 : 0
+                            nextLoop(app.players[nextIndex].code)
+                        }
+                    }
+                    break
+                }
+                // [游戏界面] 更新落子
+                case "Game_ChessUpdate_Wuzi": {
+                    let { loc } = JSON.parse(mes.contents)
+                    putChess(loc.x, loc.y, loc.color)
+                    break
+                }
+            }
+        }
+    }
+}
 function WUZI_InitialGamingInfos() {
     app.gamingInfos = {
         chessMap: [], // 棋盘信息
@@ -574,63 +594,107 @@ function WUZI_CheckWin(i, j) {
 }
 
 // UNO
+function handleUNO(mes) {
+    if (mes.to == app.keyCode || mes.to == 'all') { // 需要我处理的信息
+        if (mes.category.split("_")[0] == "Server" ? checkServer() : !checkServer()) {
+            switch (mes.category) {
+
+            }
+        }
+    }
+}
 function UNO_InitialGamingInfos() {
     app.gamingInfos = {
         pokers: [], // 牌堆
         pokersUsed: [], // 墓地
         pokersLast: [], // 上几张牌的记录
         //
-        status: "", // 特殊状态 +2|+4|ban
         step: 1, // 回合方向
+        status: "", // 特殊状态 +2|+4|ban
     }
-    //
+    // 生成牌堆并洗牌
     app.gamingInfos.pokers = shufflePokers(createPokers("uno"))
-    console.log("Testing: ", app.gamingInfos.pokers)
 }
-// 给相应玩家相应数量的牌
+
+// 系统发牌
 function putPokers(count, code) {
-    let result = []
+    let pokers = []
     //
     for (let loop = 0; loop < count; loop++) {
         // 从牌堆中拿出最后一张牌
-        let poker = objCopy(app.gamingInfos.pokers.pop())
-        //
-        app.players.map(player => {
-            if (player.code == code) {
-                log(code, "我拿到了" + count + "张牌：" + poker.name)
+        let poker = ExObject.copy(app.gamingInfos.pokers.pop())
+        pokers.push(poker)
+        // 牌堆已经用完了
+        if (app.gamingInfos.pokers.length < 1) {
+            app.gamingInfos.pokers = shufflePokers(ExArr.copy(app.gameInfos.pokersUsed))
+            app.gamingInfos.pokersUsed = []
+        }
+    }
+    let result = updatePokers(code, pokers)
+    // 通知用户
+    app.players.map(_player => {
+        if (_player.type != "robot") {
+            if (_player.code == code) {
                 let message = {
-                    category: "Game_PutPoker",
+                    category: "Game_UpdatePokers",
                     from: app.serverInfos.code,
-                    to: player.code,
+                    to: _player.code,
                     contents: JSON.stringify({
-                        poker,
+                        type: "concat",
+                        pokers,
                     }),
                     remarks: "",
                 }
                 sendMessage(message)
             }
             else {
-                log(code, "我知道别人拿到了牌")
                 let message = {
                     category: "Game_RefreshPokers",
                     from: app.serverInfos.code,
-                    to: player.code,
+                    to: _player.code,
                     contents: JSON.stringify({
-                        players: app.players
+                        code: code,
+                        pokers: result
                     }),
                     remarks: "",
                 }
                 sendMessage(message)
             }
-        })
-        //
-        result.push(poker)
-        // 牌堆已经用完了
-        if (app.gameInfos.pokers.length < 1) {
-            app.gameInfos.pokers = shufflePokers(ExArr.copy(app.gameInfos.pokersUsed))
-            app.gameInfos.pokersUsed = []
+        }
+    })
+    //
+    return pokers
+}
+/**
+ * @summary 更新某位玩家的牌堆
+ * @param type concat|加牌 slice|出牌 update|替换
+ */
+function updatePokers(code, pokers, type = "concat") {
+    let playerInfo = app.players.find(player => player.code == code)
+    let temp = playerInfo.pokers
+    console.log(2, playerInfo, type)
+    switch (type) {
+        case "concat": {
+            console.log(2.1)
+            temp = temp.concat(pokers)
+            log(code, "我拿到了" + pokers.length + "张牌")
+            console.log(2.2)
+            break
+        }
+        case "slice": {
+            console.log(2.1)
+            log(code, "我丢弃了" + pokers.length + "张牌")
+            console.log(2.2)
+            break
+        }
+        case "update": {
+            console.log(2.1)
+            log(code, "我更新了" + pokers.length + "张牌")
+            temp = pokers
+            console.log(2.2)
+            break
         }
     }
-    //
-    return result
+    playerInfo.pokers = temp
+    return playerInfo.pokers
 }

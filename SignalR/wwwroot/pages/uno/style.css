@@ -1,20 +1,40 @@
-
-.section-games {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    padding: 20px;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 0;
-    background: gray;
-}
-
-.map-games {
+.game-map {
     position: relative;
     width: 100%;
     height: 100%;
+    background-image: url("../../assets/imgs/system/bg-01.png");
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    z-index: 10;
+}
+
+.game-map::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    background-image: url("../../assets/imgs/system/bg-01.png");
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+    filter: blur(10px);
+}
+
+.game-player {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 20px 50px;
+    border: 1px solid;
+}
+
+.game-player .player-item {
+    column-gap: 50px;
 }
 
 .game-players {
@@ -38,20 +58,20 @@
 .players.player-1 {
     right: 0;
     top: -125px;
-    transform: rotate( -90deg);
+    transform: rotate(-90deg);
     transform-origin: right bottom;
 }
 
 .players.player-2 {
     top: 0;
     left: 50%;
-    transform: translate(-50%, 0) rotate( 180deg);
+    transform: translate(-50%, 0) rotate(180deg);
 }
 
 .players.player-3 {
     left: 0;
     top: -125px;
-    transform: rotate( 90deg);
+    transform: rotate(90deg);
     transform-origin: left bottom;
 }
 
@@ -95,8 +115,10 @@
     margin-top: -1rem;
 }
 
-.player-1 .list-pokers .poker, .player-2 .list-pokers .poker, .player-3 .list-pokers .poker {
-    margin-left: -4.3rem
+.player-1 .list-pokers .poker,
+.player-2 .list-pokers .poker,
+.player-3 .list-pokers .poker {
+    margin-left: -4.3rem;
 }
 
 .pokers-player {
@@ -136,14 +158,15 @@
 }
 
 .game-infos {
-    padding: 20px;
+    position: absolute;
     top: 50%;
     left: 50%;
+    z-index: 6;
+    padding: 20px;
     transform: translate(-50%, -50%);
-    display: flex;
     border-radius: 10px;
     background: rgba(0, 0, 0, 0.3);
-    z-index: 6;
+    display: flex;
 }
 
 .game-infos .list-pokers {
@@ -159,20 +182,24 @@
     margin-left: -5rem;
 }
 
-.game-infos.infos-red, .btn-red {
-    background: rgba(222, 35, 26, .7);
+.game-infos.infos-red,
+.btn-red {
+    background: rgba(222, 35, 26, 0.7);
 }
 
-.game-infos.infos-yellow, .btn-yellow {
-    background: rgba(249, 238, 4, .7);
+.game-infos.infos-yellow,
+.btn-yellow {
+    background: rgba(249, 238, 4, 0.7);
 }
 
-.game-infos.infos-green, .btn-green {
-    background: rgba(0, 149, 65, .7);
+.game-infos.infos-green,
+.btn-green {
+    background: rgba(0, 149, 65, 0.7);
 }
 
-.game-infos.infos-blue, .btn-blue {
-    background: rgba(0, 148, 222, .7);
+.game-infos.infos-blue,
+.btn-blue {
+    background: rgba(0, 148, 222, 0.7);
 }
 
 .infos-pokers {

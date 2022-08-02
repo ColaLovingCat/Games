@@ -15,7 +15,8 @@
 </head>
 
 <body>
-    <div class="section-game">
+    <!-- 游戏界面 -->
+    <section class="section-game">
         <div id="app">
             <div class="players">
                 <div class="player-item" v-bind:class="hostPlayer.code==activeCode?'':'disabled'">
@@ -49,7 +50,7 @@
             </div>
         </div>
         <canvas id="canvas" height="750" width="750"></canvas>
-    </div>
+    </section>
     <!-- 结束画面 -->
     <section class="section-modal modal-end">
         <div class="modals">
@@ -66,6 +67,7 @@
             </div>
         </div>
     </section>
+    <!-- 通知信息 -->
     <div id="notify"></div>
 
     <script src="../../libs/vue/vue.min.js"></script>
@@ -131,8 +133,9 @@
                 // 游戏规则信息
                 gameInfos: {
                     type: "wuzi",
-                    category: "chess",
                     showName: "五子棋",
+                    isActive: "",
+                    category: "chess",
                     playerCount: 2,
                     rules: {
                         size: 25,
@@ -150,7 +153,20 @@
                 lastLoc: {
                     x: -1,
                     y: -1,
-                }
+                },
+                // loading
+                loading: {
+                    value: 0,
+                    load: function () {
+                        this.value++
+                    },
+                    end: function () {
+                        this.value--
+                    },
+                    clear: function () {
+                        this.value = 0
+                    },
+                },
             },
             computed: {
                 hostPlayer: function () {  // 当前玩家信息

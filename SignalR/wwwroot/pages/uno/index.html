@@ -15,84 +15,76 @@
 </head>
 
 <body>
-    <div>
-        <div id="app" class="section-game">
-            <div class="map-games">
-                <!-- 玩家界面 -->
-                <div class="game-players">
-                    <div class="players" v-for="(player,playerIndex) in players" v-bind:class="'player-'+playerIndex">
-                        <!-- 操作按钮-->
-                        <div class="players-btns">
-                            <button type="button" class="btn btn-play"
-                                v-if="player.type=='admin'&&gameInfo.status=='waitingPlay'"
-                                onclick="adminPlay()">出牌</button>
-                            <button type="button" class="btn btn-play"
-                                v-if="player.type=='admin'&&gameInfo.status=='waitingPlay'"
-                                onclick="getPoker(1,0)">摸牌</button>
-                            <button type="button" class="btn btn-play"
-                                v-if="player.type=='admin'&&gameInfo.status=='waitingPlay'&&!gameSetting.pokerRules.isForce"
-                                onclick="getPoker(1,0)">跳过</button>
-                            <div class="color-btns" v-if="player.type=='admin'&&gameInfo.status=='waitingColor'">
-                                <button type="button" class="btn btn-play btn-red"
-                                    onclick="changeColor('red')">Red</button>
-                                <button type="button" class="btn btn-play btn-yellow"
-                                    onclick="changeColor('yellow')">Yellow</button>
-                                <button type="button" class="btn btn-play btn-green"
-                                    onclick="changeColor('green')">Green</button>
-                                <button type="button" class="btn btn-play btn-blue"
-                                    onclick="changeColor('blue')">Blue</button>
+    <div id="app">
+        <!-- 游戏界面 -->
+        <section class="section-game">
+            <!-- 牌桌 -->
+            <div class="game-map">
+                <!-- 本人界面 -->
+                <div class="game-player">
+                    <!-- 操作按钮-->
+                    <div class="players-btns">
+                        <button type="button" class="btn btn-play" v-if="gameStatus.status=='waitingPlay'"
+                            onclick="adminPlay()">出牌</button>
+                        <button type="button" class="btn btn-play" v-if="gameStatus.status=='waitingPlay'"
+                            onclick="getPoker(1,0)">摸牌</button>
+                        <button type="button" class="btn btn-play"
+                            v-if="gameStatus.status=='waitingPlay'&&!gameSetting.pokerRules.isForce"
+                            onclick="getPoker(1,0)">跳过</button>
+                        <div class="color-btns" v-if="gameStatus.status=='waitingColor'">
+                            <button type="button" class="btn btn-play btn-red" onclick="changeColor('red')">Red</button>
+                            <button type="button" class="btn btn-play btn-yellow"
+                                onclick="changeColor('yellow')">Yellow</button>
+                            <button type="button" class="btn btn-play btn-green"
+                                onclick="changeColor('green')">Green</button>
+                            <button type="button" class="btn btn-play btn-blue"
+                                onclick="changeColor('blue')">Blue</button>
+                        </div>
+                    </div>
+                    <!-- 玩家界面-->
+                    <div class="player-item">
+                        <!-- 玩家信息 -->
+                        <div class="player-infos">
+                            <div class="item-img">
+                                <img v-bind:src="'../../assets/imgs/players/'+hostPlayer.img"
+                                    onerror="console.log('IMGError','others')">
+                            </div>
+                            <div class="item-status" v-bind:class="hostPlayer.isOnline?'active':''">
+                                <i class="fa fa-circle"></i>
+                            </div>
+                            <div class="item-name">
+                                <div class="icon-robot" v-if="hostPlayer.type=='robot'">
+                                    <img src="./assets/imgs/system/robot.png">
+                                </div>
+                                <span>{{hostPlayer.showName}}</span>
                             </div>
                         </div>
                         <!-- 牌堆 -->
-                        <div class="players-pokers" v-if="player.pokers.length>0">
-                            <div class="list-pokers">
-                                <div class="poker" v-for="(poker,index) in player.pokers"
-                                    v-bind:class="getStatus(poker)" v-bind:style="getStyle(poker)"
-                                    v-on:click="selectPoker(playerIndex,index)">
-                                </div>
+                        <div class="list-pokers">
+                            <div class="poker" v-for="(poker,index) in hostPlayer.pokers"
+                                v-bind:class="getStatus(poker)" v-bind:style="getStyle(poker)"
+                                v-on:click="selectPoker(0,index)">
                             </div>
-                            <div class="pokers-player">
-                                <img v-bind:src="'./assets/users/player-'+playerIndex+'-'+player.isActive+'.png'" />
-                                <div class="pokers-num">
-                                    <span>{{player.pokers.length}}</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- 其余玩家 -->
+                <div class="players players-other">
 
-                                </div>
-                                <span class="pokers-txt">{{player.name}}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- 按钮 -->
-                <div class="game-area game-btns">
-                    <button type="button" class="btn" onclick="endGame(0)">退出</button>
-                </div>
-                <!-- 牌堆 -->
-                <div class="game-area game-pokers">
-                    <div class="list-pokers">
-                        <div class="poker" v-for="(poker,index) in pokers" v-bind:style="getStyle(poker)">
-                        </div>
-                    </div>
                 </div>
                 <!-- 进度信息 -->
-                <div class="game-area game-infos" v-if="lastInfo.poker" v-bind:class="'infos-'+lastInfo.poker.color">
-                    <div class="list-pokers pokers-used">
-                        <div class="poker" v-for="(poker,index) in getPokersUsed().pokers"
-                            v-bind:style="getStyle(poker)">
-                        </div>
-                    </div>
-                    <div class="infos-pokers">
-                        <div class="poker poker-item1" v-if="getPokersUsed().poker1"
-                            v-bind:style="getStyle(getPokersUsed().poker1)"></div>
-                        <div class="poker poker-item2" v-if="getPokersUsed().poker2"
-                            v-bind:style="getStyle(getPokersUsed().poker2)"></div>
-                        <div class="poker poker-item3" v-if="getPokersUsed().poker3"
-                            v-bind:style="getStyle(getPokersUsed().poker3)"></div>
-                    </div>
+                <div class="game-infos">
+
                 </div>
             </div>
-        </div>
-        <div id="notify"></div>
+        </section>
+        <!-- 等待界面 -->
+        <section class="section-loading" v-show="loading.value>0">
+            <div class="loading"></div>
+        </section>
     </div>
+    <!-- 通知信息 -->
+    <div id="notify"></div>
 
     <script src="../../libs/vue/vue.min.js"></script>
 
@@ -121,8 +113,6 @@
         function afterStart() {
             // 获取服务信息
             getinfoServer()
-            //
-
         }
         // 处理信息
         function getMessage(mes) {
@@ -147,20 +137,41 @@
                     limit: 4,
                 },
                 gameInfos: {
-                    type: "",
-                    category: "",
+                    type: "uno",
                     showName: "",
+                    isActive: "",
+                    category: "",
                     playerCount: 0,
                     rules: {},
                 },
                 gameStatus: {
                     step: "game",
+                    status: "",
                 },
-                activeCode: "", // 当前操作玩家
+                activeCode: "",
                 players: [],
                 // 页面所需信息
-                pokers: [], // 牌堆
-                pokersUsed: [], // 已用牌堆
+                gamingInfos: {
+                    pokers: [], // 牌堆
+                    pokersUsed: [], // 墓地
+                    pokersLast: [], // 上几张牌的记录
+                    //
+                    step: 1, // 回合方向
+                    status: "", // 特殊状态 +2|+4|ban
+                },
+                // loading
+                loading: {
+                    value: 0,
+                    load: function () {
+                        this.value++
+                    },
+                    end: function () {
+                        this.value--
+                    },
+                    clear: function () {
+                        this.value = 0
+                    },
+                },
             },
             computed: {
                 hostPlayer: function () {
@@ -168,6 +179,28 @@
                 },
                 otherPlayers: function () {
                     return groupPlayers(this.players, this.keyCode).otherPlayers
+                },
+            },
+            methods: {
+                // 获取状态
+                getStatus: function (poker) {
+                    let result = [];
+                    if (poker.isSelected) { result.push("poker-selected") }
+                    return result;
+                },
+                // 获取样式
+                getStyle: function (poker) {
+                    let result = {
+                        backgroundImage: "",
+                    };
+                    //
+                    if (poker) {
+                        let url = "./assets/imgs/games/" + this.gameInfos.type + "/" + poker.img;
+                        if (poker.isCover) { url = "../../assets/imgs/games/" + this.gameInfos.type + "/poker-cover.png"; }
+                        result.backgroundImage = "url('" + url + "')";
+                    }
+                    //
+                    return result;
                 },
             },
         })

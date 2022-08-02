@@ -36,11 +36,18 @@ function createGame() {
     if (app.serverInfos.model == "single") {
         console.info("[Game]: ", "***** 创建单机 *****")
         // 生成本机玩家并标记
-        let playerInfo = createPlayer(0, null, app.gameInfos.type, app.keyCode, false)
+        let playerInfo = createPlayer(0, null, app.keyCode, false)
         app.players.push(playerInfo)
-        // 标记房主
-        app.serverInfos.name = "单人房"
-        app.serverInfos.code = playerInfo.code
+        // 激活房间
+        app.serverInfos = {
+            type: "single",
+            //
+            isActive: true,
+            code: app.keyCode,
+            name: "单人房",
+            password: "",
+            limit: 1,
+        }
         // 开始游戏
         startGame()
     }
@@ -50,7 +57,7 @@ function createGame() {
         let temp = checkRoomName(app.createInfos.name)
         if (temp) {
             // 生成本机玩家
-            let playerInfo = createPlayer(0, app.createInfos.playerName, app.gameInfos.type, app.keyCode, false)
+            let playerInfo = createPlayer(0, app.createInfos.playerName, app.keyCode, false)
             app.players.push(playerInfo)
             // 激活房间
             app.serverInfos = {
@@ -114,11 +121,27 @@ function addGame() {
 
 // 开始游戏
 function startGame() {
-    console.info("[Game]: ", "***** 开始游戏 *****")
+    // 补充机器人
+    createRobot()
     // 携带keyCode跳转游戏界面
+    console.info("[Game]: ", "***** 开始游戏 *****")
     window.open("pages/" + app.gameInfos.type + "/index.html?keyCode=" + app.serverInfos.code)
     // 当前页面转为server
     app.gameStatus.step = "server"
+}
+//
+function createRobot() {
+    let startIndex = app.players.length
+    if (startIndex < app.gameInfos.playerCount) {
+        for (let loop = startIndex; loop < app.gameInfos.playerCount; loop++) {
+            let robot = createPlayer(loop, null, null, true)
+            app.players.push(robot)
+        }
+    }
+}
+
+function endServer() {
+    location = location
 }
 
 // 进入等待

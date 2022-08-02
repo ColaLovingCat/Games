@@ -18,7 +18,11 @@ function startCon() {
 
 /**
  * 
- * @param {{category:string,from:string,to:string,contents:string,remarks:string}} message 
+ * @param {string} category 类别
+ * @param {string} from 
+ * @param {string} to 
+ * @param {string} contents 
+ * @param {string} remarks 
  */
 function sendMessage(message) {
     console.log("[SignalR] Send: ", message)

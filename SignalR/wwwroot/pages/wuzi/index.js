@@ -13,7 +13,7 @@ chess.onclick = function (e) {
     if (app.keyCode == app.activeCode) {
         let loc = clickLoc(e)
         let message = {
-            category: "Server_ChessPut",
+            category: "Server_ChessPut_Wuzi",
             from: app.keyCode,
             to: app.serverInfos.code,
             contents: JSON.stringify({

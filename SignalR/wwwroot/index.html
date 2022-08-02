@@ -211,7 +211,7 @@
                         <div><b>{{serverInfos.password}}</b></div>
                     </div>
                     <div class="box-footer">
-                        <button type="button" class="btn btn-back">结束游玩</button>
+                        <button type="button" class="btn btn-back" onclick="endServer()">结束游玩</button>
                     </div>
                 </div>
                 <!-- 玩家信息 -->
@@ -224,7 +224,13 @@
                                         <img v-bind:src="'../assets/imgs/players/'+player.img"
                                             onerror="console.log('IMGError','others')">
                                     </div>
+                                    <div class="item-status" v-bind:class="player.isOnline?'active':''">
+                                        <i class="fa fa-circle"></i>
+                                    </div>
                                     <div class="item-name">
+                                        <div class="icon-robot" v-if="player.type=='robot'">
+                                            <img src="./assets/imgs/system/robot.png">
+                                        </div>
                                         <span>{{player.showName}}</span>
                                     </div>
                                 </div>
@@ -237,7 +243,7 @@
                     <div class="box-header">
                         <div class="box-tools">
                             <div class="btn btn-refresh" onclick="clearLog()">
-                                <i class="fa fa-refresh"></i>
+                                <i class="fa fa-trash"></i>
                             </div>
                         </div>
                     </div>
@@ -283,7 +289,6 @@
             <div class="loading"></div>
         </section>
     </div>
-
     <!-- 通知信息 -->
     <div id="notify"></div>
 
@@ -321,6 +326,7 @@
             handleMessage(mes)
             //
             handleWuzi(mes)
+            handleUNO(mes)
         }
     </script>
 
@@ -360,18 +366,6 @@
                 activeCode: "", // 当前操作玩家
                 players: [], // 玩家列表
                 // 页面所需信息
-                loading: {
-                    value: 0,
-                    load: function () {
-                        this.value++
-                    },
-                    end: function () {
-                        this.value--
-                    },
-                    clear: function () {
-                        this.value = 0
-                    },
-                },
                 // 游戏选择界面
                 games: [],
                 //
@@ -399,6 +393,19 @@
                 // 服务器主机信息
                 gamingInfos: null, // 存储当前游戏的进度信息
                 lastWinnerCode: "", // 上一场赢家
+                // loading
+                loading: {
+                    value: 0,
+                    load: function () {
+                        this.value++
+                    },
+                    end: function () {
+                        this.value--
+                    },
+                    clear: function () {
+                        this.value = 0
+                    },
+                },
             },
             computed: {
             },
